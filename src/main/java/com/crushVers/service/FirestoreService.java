@@ -7,6 +7,8 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -34,6 +36,35 @@ public class FirestoreService {
         QueryDocumentSnapshot document = query.getDocuments().get(0);
         User user = document.toObject(User.class);
         user.setId(document.getId());
+        return user;
+    }
+
+    // Найти пользователя по имени пользователя
+    public User findByNickname(String nickname) throws ExecutionException, InterruptedException {
+        QuerySnapshot query = getFirestore()
+                .collection(USERS_COLLECTION)
+                .whereEqualTo("nickname", nickname)
+                .limit(1)
+                .get()
+                .get();
+
+        if (query.isEmpty()) {
+            return null;
+        }
+
+        QueryDocumentSnapshot document = query.getDocuments().get(0);
+        User user = document.toObject(User.class);
+        user.setId(document.getId());
+        return user;
+    }
+
+
+    // Найти пользователя по email или nickname
+    public User findByEmailOrNickname(String login) throws ExecutionException, InterruptedException {
+        User user = findByEmail(login);
+        if (user == null) {
+            user = findByNickname(login);
+        }
         return user;
     }
 
@@ -70,5 +101,28 @@ public class FirestoreService {
                 .get();
 
         return user;
+    }
+
+    // Хэширование пароля (SHA-256)
+    public String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Ошибка хэширования пароля", e);
+        }
+    }
+
+    // Сравнивает введенный пароль с хэшем из БД
+    public boolean checkPassword(String rawPassword, String hashedPasswordFromDB) {
+        String hashedInputPassword = hashPassword(rawPassword);
+        return hashedInputPassword.equals(hashedPasswordFromDB);
     }
 }
