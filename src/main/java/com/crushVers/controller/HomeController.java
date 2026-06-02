@@ -19,4 +19,9 @@ public class HomeController {
     public String register() {
         return "register";
     }
+
+    @GetMapping("/verify-code")
+    public String verifyCode() {
+        return "verify-code";
+    }
 }

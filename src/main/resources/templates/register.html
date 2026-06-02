@@ -26,7 +26,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             padding: 40px;
             animation: fadeIn 0.5s ease;
         }
@@ -66,9 +66,20 @@
             font-weight: 500;
         }
 
-        .form-group input {
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 12px 40px 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
@@ -76,9 +87,41 @@
             outline: none;
         }
 
-        .form-group input:focus {
+        .input-wrapper input:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-wrapper input.error {
+            border-color: #e74c3c;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 20px;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #667eea;
+        }
+
+        .error-text {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .success-text {
+            color: #27ae60;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
         }
 
         .register-btn {
@@ -100,6 +143,12 @@
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
+        .register-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .login-link {
             text-align: center;
             margin-top: 25px;
@@ -118,15 +167,43 @@
             text-decoration: underline;
         }
 
-        .info-message {
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 15px;
+        .message {
+            padding: 12px;
             border-radius: 10px;
             margin-bottom: 20px;
             text-align: center;
             font-size: 14px;
+            display: none;
         }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            display: block;
+        }
+
+        .password-strength {
+            height: 4px;
+            margin-top: 8px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .weak { background: #e74c3c; width: 33%; }
+        .medium { background: #f39c12; width: 66%; }
+        .strong { background: #27ae60; width: 100%; }
     </style>
 </head>
 <body>
@@ -135,38 +212,354 @@
         <h1>💕 CrushVerse</h1>
     </div>
 
-    <div class="info-message">
-        📝 Страница регистрации в разработке
+    <div id="message" class="message info">
+        📝 Заполните форму для регистрации
     </div>
 
     <form id="registerForm">
         <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" placeholder="Введите ваш email">
+            <label for="email">Email <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <input type="email" id="email" placeholder="example@mail.com">
+            </div>
+            <span class="error-text" id="emailError"></span>
         </div>
 
         <div class="form-group">
-            <label for="nickname">Никнейм</label>
-            <input type="text" id="nickname" placeholder="Введите никнейм">
+            <label for="nickname">Никнейм <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <input type="text" id="nickname" placeholder="Ваш уникальный никнейм">
+            </div>
+            <span class="error-text" id="nicknameError"></span>
+            <span class="success-text" id="nicknameOk"></span>
         </div>
 
         <div class="form-group">
-            <label for="password">Пароль</label>
-            <input type="password" id="password" placeholder="Введите пароль">
+            <label for="birthDate">Дата рождения <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <input type="date" id="birthDate">
+            </div>
+            <span class="error-text" id="birthDateError"></span>
         </div>
 
-        <button type="submit" class="register-btn">Зарегистрироваться</button>
+        <div class="form-group">
+            <label for="password">Пароль <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <input type="password" id="password" placeholder="Минимум 6 символов">
+                <span class="password-toggle" onclick="togglePassword('password')">👁️</span>
+            </div>
+            <div class="password-strength" id="passwordStrength"></div>
+            <span class="error-text" id="passwordError"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Подтверждение пароля <span class="required">*</span></label>
+            <div class="input-wrapper">
+                <input type="password" id="confirmPassword" placeholder="Повторите пароль">
+                <span class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</span>
+            </div>
+            <span class="error-text" id="confirmError"></span>
+        </div>
+
+        <button type="submit" class="register-btn" id="submitBtn">Зарегистрироваться</button>
     </form>
 
     <div class="login-link">
-        Уже есть аккаунт? <a href="/login">Войти</a>
+        Уже есть аккаунт? <a href="/">Войти</a>
     </div>
 </div>
 
 <script>
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
+    // Функция показа/скрытия пароля
+    function togglePassword(fieldId) {
+        const input = document.getElementById(fieldId);
+        const toggle = input.parentElement.querySelector('.password-toggle');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            toggle.textContent = '👁️';
+        }
+    }
+
+    // Функция проверки сложности пароля
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (password.length >= 10) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        const strengthDiv = document.getElementById('passwordStrength');
+        strengthDiv.className = 'password-strength';
+
+        if (password.length === 0) {
+            strengthDiv.style.background = 'transparent';
+            strengthDiv.style.width = '0%';
+            return 0;
+        }
+
+        if (strength <= 2) {
+            strengthDiv.classList.add('weak');
+            return 1;
+        } else if (strength <= 4) {
+            strengthDiv.classList.add('medium');
+            return 2;
+        } else {
+            strengthDiv.classList.add('strong');
+            return 3;
+        }
+    }
+
+    // Функция вычисления возраста
+    function calculateAge(birthDate) {
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    }
+
+    // Функция показа сообщения
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = text;
+        messageDiv.className = 'message ' + type;
+
+        setTimeout(() => {
+            if (messageDiv.className === 'message ' + type) {
+                messageDiv.style.display = 'none';
+                messageDiv.className = 'message';
+            }
+        }, 5000);
+    }
+
+    // Валидация email
+    function validateEmail(email) {
+        const re = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Валидация никнейма
+    function validateNickname(nickname) {
+        const re = /^[a-zA-Z0-9_-]{3,20}$/;
+        return re.test(nickname);
+    }
+
+    // Реальная проверка всех полей
+    function validateForm() {
+        let isValid = true;
+
+        // Email
+        const email = document.getElementById('email').value.trim();
+        const emailError = document.getElementById('emailError');
+        if (!email) {
+            emailError.textContent = 'Введите email';
+            isValid = false;
+        } else if (!validateEmail(email)) {
+            emailError.textContent = 'Введите корректный email';
+            isValid = false;
+        } else {
+            emailError.textContent = '';
+        }
+
+        // Никнейм
+        const nickname = document.getElementById('nickname').value.trim();
+        const nicknameError = document.getElementById('nicknameError');
+        if (!nickname) {
+            nicknameError.textContent = 'Введите никнейм';
+            isValid = false;
+        } else if (!validateNickname(nickname)) {
+            nicknameError.textContent = 'Никнейм должен содержать 3-20 символов (буквы, цифры, _, -)';
+            isValid = false;
+        } else {
+            nicknameError.textContent = '';
+            document.getElementById('nicknameOk').textContent = '✓ Доступен';
+        }
+
+        // Дата рождения
+        const birthDate = document.getElementById('birthDate').value;
+        const birthDateError = document.getElementById('birthDateError');
+        if (!birthDate) {
+            birthDateError.textContent = 'Укажите дату рождения';
+            isValid = false;
+        } else {
+            const age = calculateAge(birthDate);
+            if (age < 18) {
+                birthDateError.textContent = 'Вам должно быть 18 лет или больше';
+                isValid = false;
+            } else {
+                birthDateError.textContent = '';
+            }
+        }
+
+        // Пароль
+        const password = document.getElementById('password').value;
+        const passwordError = document.getElementById('passwordError');
+        if (!password) {
+            passwordError.textContent = 'Введите пароль';
+            isValid = false;
+        } else if (password.length < 6) {
+            passwordError.textContent = 'Пароль должен содержать минимум 6 символов';
+            isValid = false;
+        } else {
+            passwordError.textContent = '';
+        }
+
+        // Подтверждение пароля
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const confirmError = document.getElementById('confirmError');
+        if (!confirmPassword) {
+            confirmError.textContent = 'Подтвердите пароль';
+            isValid = false;
+        } else if (password !== confirmPassword) {
+            confirmError.textContent = 'Пароли не совпадают';
+            isValid = false;
+        } else {
+            confirmError.textContent = '';
+        }
+
+        return isValid;
+    }
+
+    // Живая проверка полей
+    document.getElementById('email').addEventListener('input', function() {
+        const email = this.value.trim();
+        const errorDiv = document.getElementById('emailError');
+        if (email && !validateEmail(email)) {
+            errorDiv.textContent = 'Введите корректный email';
+        } else {
+            errorDiv.textContent = '';
+        }
+    });
+
+    document.getElementById('nickname').addEventListener('input', function() {
+        const nickname = this.value.trim();
+        const errorDiv = document.getElementById('nicknameError');
+        const okDiv = document.getElementById('nicknameOk');
+        if (nickname && !validateNickname(nickname)) {
+            errorDiv.textContent = 'Никнейм должен содержать 3-20 символов (буквы, цифры, _, -)';
+            okDiv.textContent = '';
+        } else if (nickname && validateNickname(nickname)) {
+            errorDiv.textContent = '';
+            okDiv.textContent = '✓ Доступен';
+        } else {
+            errorDiv.textContent = '';
+            okDiv.textContent = '';
+        }
+    });
+
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        checkPasswordStrength(password);
+
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const confirmError = document.getElementById('confirmError');
+        if (confirmPassword && password !== confirmPassword) {
+            confirmError.textContent = 'Пароли не совпадают';
+        } else if (confirmPassword) {
+            confirmError.textContent = '';
+        }
+
+        const passwordError = document.getElementById('passwordError');
+        if (password && password.length < 6) {
+            passwordError.textContent = 'Пароль должен содержать минимум 6 символов';
+        } else {
+            passwordError.textContent = '';
+        }
+    });
+
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmError = document.getElementById('confirmError');
+        if (this.value !== password) {
+            confirmError.textContent = 'Пароли не совпадают';
+        } else {
+            confirmError.textContent = '';
+        }
+    });
+
+    document.getElementById('birthDate').addEventListener('change', function() {
+        if (this.value) {
+            const age = calculateAge(this.value);
+            const errorDiv = document.getElementById('birthDateError');
+            if (age < 18) {
+                errorDiv.textContent = 'Вам должно быть 18 лет или больше';
+            } else {
+                errorDiv.textContent = '';
+            }
+        }
+    });
+
+
+    // Отправка формы
+    // ОТПРАВКА ФОРМЫ - ГЛАВНАЯ ФУНКЦИЯ
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        alert('Форма регистрации временно не работает. Скоро появится!');
+
+        if (!validateForm()) {
+            showMessage('Пожалуйста, исправьте ошибки в форме', 'error');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+
+        // Собираем данные
+        const formData = {
+            email: document.getElementById('email').value.trim(),
+            nickname: document.getElementById('nickname').value.trim(),
+            birthDate: document.getElementById('birthDate').value,
+            password: document.getElementById('password').value,
+            confirmPassword: document.getElementById('confirmPassword').value
+        };
+
+        console.log('Отправка данных:', formData);
+
+        try {
+            // ВАЖНО: правильный URL для отправки кода
+            const response = await fetch('/api/send-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+            console.log('Ответ сервера:', result);
+
+            if (result.success) {
+                // Сохраняем данные в localStorage для следующей страницы
+                localStorage.setItem('reg_email', formData.email);
+                localStorage.setItem('reg_nickname', formData.nickname);
+                localStorage.setItem('reg_birthDate', formData.birthDate);
+                localStorage.setItem('reg_password', formData.password);
+
+                showMessage(result.message, 'success');
+
+                // Перенаправляем на страницу ввода кода
+                setTimeout(() => {
+                    window.location.href = '/verify-code';
+                }, 1500);
+            } else {
+                showMessage(result.message || 'Ошибка при отправке кода', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Зарегистрироваться';
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showMessage('Ошибка соединения с сервером. Проверьте, что сервер запущен.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Зарегистрироваться';
+        }
     });
 </script>
 </body>

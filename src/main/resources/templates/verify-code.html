@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение | CrushVerse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .verify-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .info-text {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .info-text strong {
+            color: #667eea;
+        }
+
+        .code-input-group {
+            margin-bottom: 25px;
+        }
+
+        .code-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .code-digit {
+            width: 55px;
+            height: 70px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .code-digit:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .code-digit.error {
+            border-color: #e74c3c;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .timer {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .timer span {
+            font-weight: bold;
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        .resend-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 0;
+            text-decoration: underline;
+        }
+
+        .resend-btn:disabled {
+            color: #999;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="verify-container">
+    <div class="logo">
+        <h1>💕 CrushVerse</h1>
+    </div>
+
+    <div id="message" class="message info">
+        ✉️ Код подтверждения отправлен на вашу почту
+    </div>
+
+    <div class="info-text">
+        Введите 6-значный код из письма, отправленного на <br>
+        <strong id="userEmail">loading...</strong>
+    </div>
+
+    <div class="code-input-group">
+        <div class="code-inputs">
+            <input type="text" class="code-digit" maxlength="1" id="digit1" autofocus>
+            <input type="text" class="code-digit" maxlength="1" id="digit2">
+            <input type="text" class="code-digit" maxlength="1" id="digit3">
+            <input type="text" class="code-digit" maxlength="1" id="digit4">
+            <input type="text" class="code-digit" maxlength="1" id="digit5">
+            <input type="text" class="code-digit" maxlength="1" id="digit6">
+        </div>
+    </div>
+
+    <div class="timer" id="timerArea">
+        Код действителен: <span id="timer">05:00</span>
+    </div>
+
+    <button class="resend-btn" id="resendBtn" onclick="resendCode()">
+        Отправить код повторно
+    </button>
+
+    <button class="verify-btn" id="verifyBtn" onclick="verifyCode()">
+        Подтвердить
+    </button>
+
+    <div class="back-link">
+        <a href="/register">← Вернуться к регистрации</a>
+    </div>
+</div>
+
+<script>
+    let email = '';
+    let nickname = '';
+    let birthDate = '';
+    let password = '';
+    let timerInterval;
+    let timeLeft = 300; // 5 минут в секундах
+
+    // Получаем данные из localStorage при загрузке
+    window.onload = function() {
+        email = localStorage.getItem('reg_email') || '';
+        nickname = localStorage.getItem('reg_nickname') || '';
+        birthDate = localStorage.getItem('reg_birthDate') || '';
+        password = localStorage.getItem('reg_password') || '';
+
+        if (!email) {
+            showMessage('Ошибка: данные не найдены. Пожалуйста, зарегистрируйтесь заново.', 'error');
+            setTimeout(() => {
+                window.location.href = '/register';
+            }, 2000);
+            return;
+        }
+
+        document.getElementById('userEmail').textContent = email;
+
+        // Запрашиваем отправку кода
+        sendVerificationCode();
+
+        // Запускаем таймер
+        startTimer();
+
+        // Настраиваем автоматический переход между полями
+        setupCodeInputs();
+    };
+
+    // Отправка запроса на получение кода
+    async function sendVerificationCode() {
+        try {
+            const response = await fetch('/api/send-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    nickname: nickname,
+                    birthDate: birthDate,
+                    password: password
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage('Код отправлен на ' + email, 'success');
+                startTimer();
+            } else {
+                showMessage(result.message || 'Ошибка отправки кода', 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showMessage('Ошибка соединения с сервером', 'error');
+        }
+    }
+
+    // Повторная отправка кода
+    async function resendCode() {
+        const resendBtn = document.getElementById('resendBtn');
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'Отправка...';
+
+        try {
+            const response = await fetch('/api/send-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    nickname: nickname,
+                    birthDate: birthDate,
+                    password: password
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage('Новый код отправлен на ' + email, 'success');
+                resetTimer();
+            } else {
+                showMessage(result.message || 'Ошибка отправки кода', 'error');
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Отправить код повторно';
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showMessage('Ошибка соединения с сервером', 'error');
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Отправить код повторно';
+        }
+    }
+
+    // Проверка кода и завершение регистрации
+    async function verifyCode() {
+        // Собираем код из полей
+        const code =
+            document.getElementById('digit1').value +
+            document.getElementById('digit2').value +
+            document.getElementById('digit3').value +
+            document.getElementById('digit4').value +
+            document.getElementById('digit5').value +
+            document.getElementById('digit6').value;
+
+        if (code.length !== 6) {
+            showMessage('Введите 6-значный код', 'error');
+            return;
+        }
+
+        const verifyBtn = document.getElementById('verifyBtn');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Проверка...';
+
+        try {
+            const response = await fetch('/api/verify-and-register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    nickname: nickname,
+                    birthDate: birthDate,
+                    password: password,
+                    verificationCode: code
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage('Регистрация успешна! Перенаправление...', 'success');
+                clearInterval(timerInterval);
+                localStorage.removeItem('reg_email');
+                localStorage.removeItem('reg_nickname');
+                localStorage.removeItem('reg_birthDate');
+                localStorage.removeItem('reg_password');
+
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            } else {
+                showMessage(result.message || 'Неверный код', 'error');
+                // Очищаем поля кода при ошибке
+                clearCodeInputs();
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Подтвердить';
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showMessage('Ошибка соединения с сервером', 'error');
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Подтвердить';
+        }
+    }
+
+    // Настройка автоматического перехода между полями ввода кода
+    function setupCodeInputs() {
+        const inputs = document.querySelectorAll('.code-digit');
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                // Ограничиваем ввод только цифрами
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+
+                if (e.target.value.length === 1 && index < 5) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && index > 0 && !input.value) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+    }
+
+    // Очистка всех полей кода
+    function clearCodeInputs() {
+        for (let i = 1; i <= 6; i++) {
+            const input = document.getElementById('digit' + i);
+            input.value = '';
+            input.classList.remove('error');
+        }
+        document.getElementById('digit1').focus();
+    }
+
+    // Показать сообщение
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = text;
+        messageDiv.className = 'message ' + type;
+
+        setTimeout(() => {
+            if (messageDiv.className === 'message ' + type) {
+                messageDiv.style.display = 'none';
+                messageDiv.className = 'message';
+            }
+        }, 5000);
+    }
+
+    // Запуск таймера
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('timer').textContent = '00:00';
+                document.getElementById('resendBtn').disabled = false;
+                document.getElementById('resendBtn').textContent = 'Код истек. Отправить повторно';
+                showMessage('Срок действия кода истек. Запросите новый код.', 'error');
+            } else {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer').textContent =
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+
+        document.getElementById('resendBtn').disabled = true;
+        document.getElementById('resendBtn').textContent = 'Отправить код повторно (доступно через 5 мин)';
+    }
+
+    // Сброс таймера
+    function resetTimer() {
+        timeLeft = 300;
+        clearInterval(timerInterval);
+        startTimer();
+    }
+</script>
+</body>
+</html>
