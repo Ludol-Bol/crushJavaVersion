@@ -137,11 +137,11 @@ public class AuthController {
             }
 
             // Проверяем еще раз уникальность
-            if (firestoreService.findByEmail(request.getEmail())==null) {
+            if (firestoreService.findByEmail(request.getEmail())!=null) {
                 return Map.of("success", false, "message", "Этот email уже зарегистрирован");
             }
 
-            if (firestoreService.findByEmail(request.getNickname())==null) {
+            if (firestoreService.findByEmail(request.getNickname())!=null) {
                 return Map.of("success", false, "message", "Этот никнейм уже занят");
             }
 

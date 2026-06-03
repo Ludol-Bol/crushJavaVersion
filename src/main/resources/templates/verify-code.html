@@ -256,9 +256,9 @@
     let birthDate = '';
     let password = '';
     let timerInterval;
-    let timeLeft = 300; // 5 минут в секундах
+    let timeLeft = 300;
+    let codeSent = false; // ← ФЛАГ, ЧТОБЫ КОД ОТПРАВЛЯЛСЯ ТОЛЬКО 1 РАЗ
 
-    // Получаем данные из localStorage при загрузке
     window.onload = function() {
         email = localStorage.getItem('reg_email') || '';
         nickname = localStorage.getItem('reg_nickname') || '';
@@ -275,17 +275,16 @@
 
         document.getElementById('userEmail').textContent = email;
 
-        // Запрашиваем отправку кода
-        sendVerificationCode();
+        // Отправляем код ТОЛЬКО 1 РАЗ
+        if (!codeSent) {
+            codeSent = true;
+            sendVerificationCode();
+        }
 
-        // Запускаем таймер
         startTimer();
-
-        // Настраиваем автоматический переход между полями
         setupCodeInputs();
     };
 
-    // Отправка запроса на получение кода
     async function sendVerificationCode() {
         try {
             const response = await fetch('/api/send-verification', {
@@ -303,17 +302,18 @@
 
             if (result.success) {
                 showMessage('Код отправлен на ' + email, 'success');
-                startTimer();
+                resetTimer();
             } else {
                 showMessage(result.message || 'Ошибка отправки кода', 'error');
+                codeSent = false;
             }
         } catch (error) {
             console.error('Ошибка:', error);
             showMessage('Ошибка соединения с сервером', 'error');
+            codeSent = false;
         }
     }
 
-    // Повторная отправка кода
     async function resendCode() {
         const resendBtn = document.getElementById('resendBtn');
         resendBtn.disabled = true;
@@ -349,9 +349,7 @@
         }
     }
 
-    // Проверка кода и завершение регистрации
     async function verifyCode() {
-        // Собираем код из полей
         const code =
             document.getElementById('digit1').value +
             document.getElementById('digit2').value +
@@ -393,11 +391,10 @@
                 localStorage.removeItem('reg_password');
 
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    window.location.href = '/profile';
                 }, 2000);
             } else {
                 showMessage(result.message || 'Неверный код', 'error');
-                // Очищаем поля кода при ошибке
                 clearCodeInputs();
                 verifyBtn.disabled = false;
                 verifyBtn.textContent = 'Подтвердить';
@@ -410,20 +407,15 @@
         }
     }
 
-    // Настройка автоматического перехода между полями ввода кода
     function setupCodeInputs() {
         const inputs = document.querySelectorAll('.code-digit');
-
         inputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
-                // Ограничиваем ввод только цифрами
                 e.target.value = e.target.value.replace(/[^0-9]/g, '');
-
                 if (e.target.value.length === 1 && index < 5) {
                     inputs[index + 1].focus();
                 }
             });
-
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace' && index > 0 && !input.value) {
                     inputs[index - 1].focus();
@@ -432,7 +424,6 @@
         });
     }
 
-    // Очистка всех полей кода
     function clearCodeInputs() {
         for (let i = 1; i <= 6; i++) {
             const input = document.getElementById('digit' + i);
@@ -442,24 +433,18 @@
         document.getElementById('digit1').focus();
     }
 
-    // Показать сообщение
     function showMessage(text, type) {
         const messageDiv = document.getElementById('message');
         messageDiv.textContent = text;
         messageDiv.className = 'message ' + type;
-
+        messageDiv.style.display = 'block';
         setTimeout(() => {
-            if (messageDiv.className === 'message ' + type) {
-                messageDiv.style.display = 'none';
-                messageDiv.className = 'message';
-            }
+            messageDiv.style.display = 'none';
         }, 5000);
     }
 
-    // Запуск таймера
     function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
-
         timerInterval = setInterval(() => {
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
@@ -471,16 +456,13 @@
                 timeLeft--;
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
-                document.getElementById('timer').textContent =
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             }
         }, 1000);
-
         document.getElementById('resendBtn').disabled = true;
         document.getElementById('resendBtn').textContent = 'Отправить код повторно (доступно через 5 мин)';
     }
 
-    // Сброс таймера
     function resetTimer() {
         timeLeft = 300;
         clearInterval(timerInterval);

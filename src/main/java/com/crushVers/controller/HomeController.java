@@ -24,4 +24,9 @@ public class HomeController {
     public String verifyCode() {
         return "verify-code";
     }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "profile";
+    }
 }
