@@ -5,6 +5,7 @@ import com.google.cloud.firestore.annotation.PropertyName;
 import com.google.cloud.firestore.annotation.ServerTimestamp;
 
 import java.util.Date;
+import java.util.List;
 
 public class User {
 
@@ -29,6 +30,9 @@ public class User {
 
     @PropertyName("icon")
     private String icon;
+
+    @PropertyName("roles_id")
+    private List<String> roleIds;
 
     // Пустой конструктор (обязателен для Firebase)
     public User() {
@@ -110,6 +114,14 @@ public class User {
         this.icon = icon;
     }
 
+    public List<String> getRoleIds() {
+        return roleIds;
+    }
+
+    public void setRoleIds(List<String> roleIds) {
+        this.roleIds = roleIds;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -119,6 +131,7 @@ public class User {
                 ", birthDate=" + birthDate +
                 ", createdAt=" + createdAt +
                 ", icon='" + icon + '\'' +
+                ", roledId='" + String.join(", ", roleIds) + '\'' +
                 '}';
     }
 }

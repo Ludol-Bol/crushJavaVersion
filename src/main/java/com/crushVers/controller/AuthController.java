@@ -1,11 +1,16 @@
 package com.crushVers.controller;
 import com.crushVers.dto.VerificationRequest;
 import com.crushVers.model.User;
+import com.crushVers.model.UserRole;
 import com.crushVers.service.EmailService;
 import com.crushVers.service.FirestoreService;
+import com.crushVers.service.UserRoleService;
 import com.crushVers.service.VerificationCodeService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -14,11 +19,14 @@ import java.util.concurrent.ExecutionException;
 public class AuthController {
 
     private final FirestoreService firestoreService;
+    private final UserRoleService userRoleService;
     private final VerificationCodeService verificationCodeService;
     private final EmailService emailService;
 
-    public AuthController(FirestoreService firestoreService, VerificationCodeService verificationCodeService, EmailService emailService) {
+    public AuthController(FirestoreService firestoreService, UserRoleService userRoleService,VerificationCodeService verificationCodeService,
+                          EmailService emailService) {
         this.firestoreService = firestoreService;
+        this.userRoleService = userRoleService;
         this.verificationCodeService = verificationCodeService;
         this.emailService = emailService;
     }
@@ -153,6 +161,13 @@ public class AuthController {
             java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd");
             user.setBirthDate(dateFormat.parse(request.getBirthDate()));
             user.setCreatedAt(new java.util.Date());
+            //делаем роль
+            UserRole userRole = userRoleService.findByName("USER");
+            if (userRole != null) {
+                List<String> roleIds = new ArrayList<>();
+                roleIds.add(userRole.getId());
+                user.setRoleIds(roleIds);
+            }
             firestoreService.saveUser(user);
             // Удаляем код из Redis
             verificationCodeService.deleteCode(request.getEmail());

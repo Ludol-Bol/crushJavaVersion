@@ -253,6 +253,47 @@
         }
     }
 
+    // ЗАПОМНИТЬ МЕНЯ
+
+    // Загрузка сохраненного логина при загрузке страницы
+    function loadSavedUsername() {
+        const savedUsername = localStorage.getItem('rememberedUsername');
+        const rememberMe = localStorage.getItem('rememberMeChecked');
+
+        if (savedUsername) {
+            document.getElementById('username').value = savedUsername;
+        }
+
+        if (rememberMe === 'true') {
+            document.getElementById('rememberMe').checked = true;
+        }
+    }
+
+    // Сохранение логина, если галочка стоит
+    function saveUsernameIfNeeded() {
+        const rememberMe = document.getElementById('rememberMe').checked;
+        const username = document.getElementById('username').value;
+
+        if (rememberMe) {
+            localStorage.setItem('rememberedUsername', username);
+            localStorage.setItem('rememberMeChecked', 'true');
+        } else {
+            localStorage.removeItem('rememberedUsername');
+            localStorage.setItem('rememberMeChecked', 'false');
+        }
+    }
+
+    // Очистка сохранённых данных (если нужно)
+    function clearSavedUsername() {
+        localStorage.removeItem('rememberedUsername');
+        localStorage.setItem('rememberMeChecked', 'false');
+        document.getElementById('rememberMe').checked = false;
+        document.getElementById('username').value = '';
+    }
+
+    // Загружаем сохранённый логин при загрузке страницы
+    loadSavedUsername();
+
     // Обработка отправки формы
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -261,19 +302,18 @@
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('rememberMe').checked;
 
-        // Простая валидация
+        // Валидация
         if (!username || !password) {
             showError('Пожалуйста, заполните все поля');
             return;
         }
 
-        // Здесь будет ваш код для отправки на сервер
+        // Сохраняем логин, если нужно
+        saveUsernameIfNeeded();
+
         console.log('Данные для входа:', { username, password, rememberMe });
 
-        // Имитация запроса к серверу
-        showError('');
-
-        // Пример отправки на Spring контроллер
+        // Отправка на сервер
         fetch('/api/login', {
             method: 'POST',
             headers: {
@@ -294,6 +334,7 @@
                 }
             })
             .catch(error => {
+                console.error('Ошибка:', error);
                 showError('Ошибка соединения с сервером');
             });
     });
@@ -301,32 +342,14 @@
     // Показать ошибку
     function showError(message) {
         const errorDiv = document.getElementById('errorMessage');
-        if (message) {
-            errorDiv.textContent = message;
-            errorDiv.classList.add('show');
-        } else {
+        errorDiv.textContent = message;
+        errorDiv.classList.add('show');
+
+        // Автоматически скрыть через 5 секунд
+        setTimeout(() => {
             errorDiv.classList.remove('show');
-            errorDiv.textContent = '';
-        }
+        }, 5000);
     }
-
-    // Загрузка сохраненного логина из "Запомнить меня"
-    if (localStorage.getItem('rememberedUsername')) {
-        document.getElementById('username').value = localStorage.getItem('rememberedUsername');
-        document.getElementById('rememberMe').checked = true;
-    }
-
-    // Сохранение при отправке (если галочка стоит)
-    document.getElementById('loginForm').addEventListener('submit', function() {
-        const rememberMe = document.getElementById('rememberMe').checked;
-        const username = document.getElementById('username').value;
-
-        if (rememberMe) {
-            localStorage.setItem('rememberedUsername', username);
-        } else {
-            localStorage.removeItem('rememberedUsername');
-        }
-    });
 </script>
 </body>
 </html>

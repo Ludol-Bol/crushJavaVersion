@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -83,6 +85,24 @@ public class FirestoreService {
         User user = document.toObject(User.class);
         user.setId(document.getId());
         return user;
+    }
+
+    /**
+     * Получить всех пользователей
+     */
+    public List<User> findAllUsers() throws ExecutionException, InterruptedException {
+        QuerySnapshot query = getFirestore()
+                .collection(USERS_COLLECTION)
+                .get()
+                .get();
+
+        List<User> users = new ArrayList<>();
+        for (QueryDocumentSnapshot document : query) {
+            User user = document.toObject(User.class);
+            user.setId(document.getId());
+            users.add(user);
+        }
+        return users;
     }
 
     // Сохранить пользователя
