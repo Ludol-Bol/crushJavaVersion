@@ -253,9 +253,22 @@
         }
     }
 
-    // ЗАПОМНИТЬ МЕНЯ
+    // ===== АВТОВХОД (ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ) =====
+    async function checkAutoLogin() {
+        try {
+            const response = await fetch('/api/check-auto-login');
+            const data = await response.json();
 
-    // Загрузка сохраненного логина при загрузке страницы
+            if (data.authenticated && data.redirectUrl) {
+                // Автоматически перенаправляем на дашборд
+                window.location.href = data.redirectUrl;
+            }
+        } catch (error) {
+            console.error('Ошибка проверки автовхода:', error);
+        }
+    }
+
+    // ===== ЗАПОМНИТЬ МЕНЯ (сохраняем логин для удобства) =====
     function loadSavedUsername() {
         const savedUsername = localStorage.getItem('rememberedUsername');
         const rememberMe = localStorage.getItem('rememberMeChecked');
@@ -269,7 +282,6 @@
         }
     }
 
-    // Сохранение логина, если галочка стоит
     function saveUsernameIfNeeded() {
         const rememberMe = document.getElementById('rememberMe').checked;
         const username = document.getElementById('username').value;
@@ -283,73 +295,69 @@
         }
     }
 
-    // Очистка сохранённых данных (если нужно)
-    function clearSavedUsername() {
-        localStorage.removeItem('rememberedUsername');
-        localStorage.setItem('rememberMeChecked', 'false');
-        document.getElementById('rememberMe').checked = false;
-        document.getElementById('username').value = '';
-    }
-
-    // Загружаем сохранённый логин при загрузке страницы
-    loadSavedUsername();
-
     // Обработка отправки формы
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('rememberMe').checked;
 
-        // Валидация
         if (!username || !password) {
             showError('Пожалуйста, заполните все поля');
             return;
         }
 
-        // Сохраняем логин, если нужно
+        // Сохраняем логин в localStorage (только для подстановки в поле)
         saveUsernameIfNeeded();
 
-        console.log('Данные для входа:', { username, password, rememberMe });
+        console.log('Данные для входа:', {username, password, rememberMe});
 
-        // Отправка на сервер
-        fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-                rememberMe: rememberMe
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = '/main-page';
-                } else {
-                    showError(data.message || 'Неверный логин или пароль');
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                showError('Ошибка соединения с сервером');
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    rememberMe: rememberMe
+                })
             });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.redirectUrl || '/main-page';
+            } else {
+                showError(data.message || 'Неверный логин или пароль');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Войти';
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showError('Ошибка соединения с сервером');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Войти';
+        }
     });
 
-    // Показать ошибку
     function showError(message) {
         const errorDiv = document.getElementById('errorMessage');
         errorDiv.textContent = message;
         errorDiv.classList.add('show');
-
-        // Автоматически скрыть через 5 секунд
         setTimeout(() => {
             errorDiv.classList.remove('show');
         }, 5000);
     }
+
+    // ===== ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ =====
+    // 1. Проверяем, нет ли уже активного токена (автовход)
+    checkAutoLogin();
+
+    // 2. Подставляем сохранённый логин (если есть)
+    loadSavedUsername();
 </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.crushVers.service;
 
 import com.crushVers.model.User;
+import com.crushVers.model.UserToken;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -17,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 public class FirestoreService {
 
     private static final String USERS_COLLECTION = "users";
+    private static final String USER_TOKEN_COLLECTION = "user_tokens";
 
     private Firestore getFirestore() {
         return FirestoreClient.getFirestore();
@@ -123,7 +126,9 @@ public class FirestoreService {
         return user;
     }
 
-    // Хэширование пароля (SHA-256)
+    /**
+     * Хэширование пароля (SHA-256)
+     */
     public String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -140,9 +145,70 @@ public class FirestoreService {
         }
     }
 
-    // Сравнивает введенный пароль с хэшем из БД
+    /**
+     * Сравнивает введенный пароль с хэшем из БД
+     */
     public boolean checkPassword(String rawPassword, String hashedPasswordFromDB) {
         String hashedInputPassword = hashPassword(rawPassword);
         return hashedInputPassword.equals(hashedPasswordFromDB);
+    }
+
+    /**
+     * Сохранение токена автовхода
+     */
+    public void saveUserToken(UserToken userToken) throws ExecutionException, InterruptedException {
+        String docId = getFirestore().collection(USER_TOKEN_COLLECTION).document().getId();
+        userToken.setId(docId);
+        getFirestore().collection("user_tokens").document(docId).set(userToken).get();
+    }
+
+    /**
+     * Найти пользователя по токену
+     */
+    public User findUserByToken(String token) throws ExecutionException, InterruptedException {
+        QuerySnapshot query = getFirestore()
+                .collection(USER_TOKEN_COLLECTION)
+                .whereEqualTo("token", token)
+                .whereGreaterThan("expiresAt", new Date())
+                .limit(1)
+                .get()
+                .get();
+        if (query.isEmpty()) {
+            return null;
+        }
+        String userId = query.getDocuments().get(0).toObject(UserToken.class).getUserId();
+        return findById(userId);
+    }
+
+
+    /**
+     * Найти пользователя по токену
+     */
+    public UserToken findTokenByValue(String token) throws ExecutionException, InterruptedException {
+        QuerySnapshot query = getFirestore()
+                .collection(USER_TOKEN_COLLECTION)
+                .whereEqualTo("token", token)
+                .limit(1)
+                .get()
+                .get();
+
+        if (query.isEmpty()) {
+            return null;
+        }
+        return query.getDocuments().get(0).toObject(UserToken.class);
+    }
+
+    /**
+     * Удалить токен при выходе
+     */
+    public void deleteUserToken(String token) throws ExecutionException, InterruptedException {
+        QuerySnapshot query = getFirestore()
+                .collection(USER_TOKEN_COLLECTION)
+                .whereEqualTo("token", token)
+                .get()
+                .get();
+        for (QueryDocumentSnapshot doc : query) {
+            doc.getReference().delete().get();
+        }
     }
 }

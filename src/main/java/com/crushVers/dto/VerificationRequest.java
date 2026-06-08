@@ -7,7 +7,6 @@ public class VerificationRequest {
     private String password;
     private String verificationCode;
 
-    // Геттеры и сеттеры
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 

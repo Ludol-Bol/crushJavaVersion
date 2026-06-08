@@ -2,16 +2,18 @@ package com.crushVers.controller;
 import com.crushVers.dto.VerificationRequest;
 import com.crushVers.model.User;
 import com.crushVers.model.UserRole;
+import com.crushVers.model.UserToken;
 import com.crushVers.service.EmailService;
 import com.crushVers.service.FirestoreService;
 import com.crushVers.service.UserRoleService;
 import com.crushVers.service.VerificationCodeService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -31,11 +33,49 @@ public class AuthController {
         this.emailService = emailService;
     }
 
+    /**
+     * Автовход
+     */
+    @GetMapping("/check-auto-login")
+    public Map<String, Object> checkAutoLogin(HttpServletRequest request, HttpSession session) {
+        // Проверяем, есть ли уже сессия
+        if (session.getAttribute("user") != null) {
+            return Map.of("authenticated", true, "redirectUrl", "/main-page");
+        }
+
+        // Проверяем cookie с токеном
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("auto_login_token".equals(cookie.getName())) {
+                    try {
+                        // Ищем токен в БД
+                        UserToken userToken = firestoreService.findTokenByValue(cookie.getValue());
+                        if (userToken != null && userToken.getExpiresAt().after(new Date())) {
+                            // Токен валиден — загружаем пользователя
+                            User user = firestoreService.findById(userToken.getUserId());
+                            if (user != null) {
+                                session.setAttribute("user", user);
+                                session.setAttribute("userId", user.getId());
+                                session.setAttribute("userNickname", user.getNickname());
+                                return Map.of("authenticated", true, "redirectUrl", "/main-page");
+                            }
+                        }
+                    } catch (ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        return Map.of("authenticated", false);
+    }
+
 
     //авторизация
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> loginData,
-                                     HttpSession session) {
+                                     HttpSession session, HttpServletResponse response) {
         // получение введенных данных
         String login = loginData.get("username");
         String password = loginData.get("password");
@@ -66,10 +106,32 @@ public class AuthController {
                 session.setAttribute("user", user);
                 session.setAttribute("userId", user.getId());
                 session.setAttribute("userNickname", user.getNickname());
+
+                if (rememberMe) {
+                    String token = UUID.randomUUID().toString().replace("-", "");
+
+                    // Сохраняем токен в БД (связываем с пользователем)
+                    UserToken userToken = new UserToken();
+                    userToken.setUserId(user.getId());
+                    userToken.setToken(token);
+                    userToken.setCreatedAt(new Date());
+                    userToken.setExpiresAt(new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000)); // 30 дней
+                    firestoreService.saveUserToken(userToken);
+
+                    // Сохраняем токен в cookie
+                    Cookie cookie = new Cookie("auto_login_token", token);
+                    cookie.setMaxAge(30 * 24 * 60 * 60); // 30 дней
+                    cookie.setPath("/");
+                    cookie.setHttpOnly(true);  // Защита от XSS
+                    cookie.setSecure(false);   // Для localhost (true для HTTPS)
+                    response.addCookie(cookie);
+                }
+                // =========================================
+
                 return Map.of(
                         "success", true,
                         "message", "Добро пожаловать, " + user.getNickname() + "!",
-                        "redirectUrl", "/dashboard",
+                        "redirectUrl", "/main-page",
                         "user", Map.of(
                                 "id", user.getId(),
                                 "email", user.getEmail(),
@@ -184,12 +246,24 @@ public class AuthController {
 
     //выход
     @PostMapping("/logout")
-    public Map<String, Object> logout(HttpSession session) {
+    public Map<String, Object> logout(HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        // Удаляем токен из БД и cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("auto_login_token".equals(cookie.getName())) {
+                    try {
+                        firestoreService.deleteUserToken(cookie.getValue());
+                    } catch (ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    cookie.setMaxAge(0);
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }
+            }
+        }
         session.invalidate();
-        return Map.of(
-                "success", true,
-                "message", "Вы вышли из системы",
-                "redirectUrl", "/login"
-        );
+        return Map.of("success", true, "redirectUrl", "/login");
     }
 }
