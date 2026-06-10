@@ -63,6 +63,17 @@ public class VerificationCodeService {
     }
 
     /**
+     * Сохранение кода для сброса пароля в Redis и отправка на почту
+     */
+    public void saveAndSendResetCode(String email, String nickname) {
+        String code = generateCode();
+        String key = "reset:" + email;
+        redisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
+        emailService.sendResetPasswordCode(email, nickname, code);
+    }
+
+
+    /**
      * Проверка, есть ли код для email
      */
     public boolean hasCode(String email) {

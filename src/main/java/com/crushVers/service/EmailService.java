@@ -38,4 +38,24 @@ public class EmailService {
         System.out.println("📧 Письмо отправлено на " + toEmail + " с кодом: " + code);
     }
 
+    /**
+     * Отправка кода для сброса пароля
+     */
+    public void sendResetPasswordCode(String toEmail, String nickname, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Сброс пароля в CrushVerse 🔐");
+        message.setText(
+                "Здравствуйте, " + nickname + "!\n\n" +
+                        "Вы запросили сброс пароля в CrushVerse.\n\n" +
+                        "Ваш код для сброса пароля: " + code + "\n\n" +
+                        "Код действителен в течение 5 минут.\n\n" +
+                        "Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.\n\n" +
+                        "С любовью, команда CrushVerse 💕"
+        );
+
+        mailSender.send(message);
+    }
+
 }

@@ -244,6 +244,97 @@ public class AuthController {
         }
     }
 
+
+    /**
+     *  Запрос на сброс пароля
+     */
+    @PostMapping("/forgot-password")
+    public Map<String, Object> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return Map.of("success", false, "message", "Введите email");
+        }
+        try {
+            User user = firestoreService.findByEmail(email);
+            if (user == null) {
+                return Map.of("success", false, "message", "Пользователь с таким email не найден");
+            }
+            verificationCodeService.saveAndSendResetCode(email, user.getNickname());
+            return Map.of(
+                    "success", true,
+                    "message", "Код для сброса пароля отправлен на " + email,
+                    "email", email
+            );
+
+        } catch (ExecutionException | InterruptedException e) {
+            return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Проверка кода сброса пароля
+     */
+    @PostMapping("/verify-reset-code")
+    public Map<String, Object> verifyResetCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+
+        if (email == null || code == null) {
+            return Map.of("success", false, "message", "Неверные данные");
+        }
+        boolean isValid = verificationCodeService.verifyCode(email, code);
+        if (isValid) {
+            return Map.of(
+                    "success", true,
+                    "message", "Код подтверждён",
+                    "email", email
+            );
+        } else {
+            return Map.of(
+                    "success", false,
+                    "message", "Неверный или истекший код"
+            );
+        }
+    }
+
+    /**
+     *  Установка нового пароля
+     */
+    @PostMapping("/reset-password")
+    public Map<String, Object> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+        String confirmPassword = request.get("confirmPassword");
+        // еще раз проверяем
+        if (email == null || newPassword == null || confirmPassword == null) {
+            return Map.of("success", false, "message", "Заполните все поля");
+        }
+        if (newPassword.length() < 6) {
+            return Map.of("success", false, "message", "Пароль должен содержать минимум 6 символов");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            return Map.of("success", false, "message", "Пароли не совпадают");
+        }
+        try {
+            User user = firestoreService.findByEmail(email);
+            if (user == null) {
+                return Map.of("success", false, "message", "Пользователь не найден");
+            }
+            String newPasswordHash = firestoreService.hashPassword(newPassword);
+            user.setPasswordHash(newPasswordHash);
+            firestoreService.saveUser(user);
+            verificationCodeService.deleteCode(email);
+            return Map.of(
+                    "success", true,
+                    "message", "Пароль успешно изменён!",
+                    "redirectUrl", "/login"
+            );
+
+        } catch (Exception e) {
+            return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
+        }
+    }
+
     //выход
     @PostMapping("/logout")
     public Map<String, Object> logout(HttpSession session, HttpServletRequest request, HttpServletResponse response) {

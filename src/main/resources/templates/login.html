@@ -132,6 +132,7 @@
             text-decoration: none;
             font-size: 14px;
             transition: color 0.3s ease;
+            cursor: pointer;
         }
 
         .forgot-password:hover {
@@ -227,14 +228,12 @@
                 <input type="checkbox" id="rememberMe">
                 <span>Запомнить меня</span>
             </label>
-            <a href="#" class="forgot-password">Забыли пароль?</a>
+            <a class="forgot-password" onclick="goToForgotPassword()">Забыли пароль?</a>
         </div>
-
-        <button type="submit" class="login-btn">Войти</button>
+        <button type="submit" class="login-btn" id="submitBtn">Войти</button>
     </form>
 
-    <div class="register-link">
-        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+    <div class="register-link">Нет аккаунта? <a href="/register">Зарегистрироваться</a>
     </div>
 </div>
 
@@ -253,14 +252,18 @@
         }
     }
 
-    // ===== АВТОВХОД (ПРОВЕРКА ТОКЕНА ПРИ ЗАГРУЗКЕ) =====
+    // Переход на страницу "Забыли пароль?"
+    function goToForgotPassword() {
+        window.location.href = '/forgot-password';
+    }
+
+    // автовход
     async function checkAutoLogin() {
         try {
             const response = await fetch('/api/check-auto-login');
             const data = await response.json();
 
             if (data.authenticated && data.redirectUrl) {
-                // Автоматически перенаправляем на дашборд
                 window.location.href = data.redirectUrl;
             }
         } catch (error) {
@@ -268,7 +271,6 @@
         }
     }
 
-    // ===== ЗАПОМНИТЬ МЕНЯ (сохраняем логин для удобства) =====
     function loadSavedUsername() {
         const savedUsername = localStorage.getItem('rememberedUsername');
         const rememberMe = localStorage.getItem('rememberMeChecked');
@@ -302,6 +304,7 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('rememberMe').checked;
+        const submitBtn = document.getElementById('submitBtn');
 
         if (!username || !password) {
             showError('Пожалуйста, заполните все поля');
@@ -311,7 +314,8 @@
         // Сохраняем логин в localStorage (только для подстановки в поле)
         saveUsernameIfNeeded();
 
-        console.log('Данные для входа:', {username, password, rememberMe});
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Вход...';
 
         try {
             const response = await fetch('/api/login', {
@@ -352,11 +356,9 @@
         }, 5000);
     }
 
-    // ===== ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ =====
-    // 1. Проверяем, нет ли уже активного токена (автовход)
+
     checkAutoLogin();
 
-    // 2. Подставляем сохранённый логин (если есть)
     loadSavedUsername();
 </script>
 </body>
