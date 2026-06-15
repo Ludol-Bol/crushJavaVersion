@@ -202,7 +202,7 @@ public class AuthController {
     public Map<String, Object> verifyAndRegister(@RequestBody VerificationRequest request) {
         try {
             // Проверяем код в Redis
-            if (!verificationCodeService.verifyCode(request.getEmail(), request.getVerificationCode())) {
+            if (!verificationCodeService.registrationCode(request.getEmail(), request.getVerificationCode())) {
                 return Map.of("success", false, "message", "Неверный или истекший код подтверждения");
             }
 
@@ -282,7 +282,7 @@ public class AuthController {
         if (email == null || code == null) {
             return Map.of("success", false, "message", "Неверные данные");
         }
-        boolean isValid = verificationCodeService.verifyCode(email, code);
+        boolean isValid = verificationCodeService.restCode(email, code);
         if (isValid) {
             return Map.of(
                     "success", true,

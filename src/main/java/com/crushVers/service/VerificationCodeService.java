@@ -10,6 +10,8 @@ public class VerificationCodeService {
 
     private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
+    private static final String PREFIX_REGISTRATION = "verification:";
+    private static final String PREFIX_RESET = "reset:";
 
     public VerificationCodeService(StringRedisTemplate redisTemplate, EmailService emailService) {
         this.redisTemplate = redisTemplate;
@@ -32,7 +34,7 @@ public class VerificationCodeService {
         // Генерируем код
         String code = generateCode();
         // Сохраняем в Redis с TTL 5 минут (300 секунд)
-        String key = "verification:" + email;
+        String key = PREFIX_REGISTRATION + email;
         redisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
         // Отправляем на почту
         emailService.sendVerificationCode(email, nickname, code);
@@ -42,8 +44,8 @@ public class VerificationCodeService {
     /**
      * Проверка кода из Redis
      */
-    public boolean verifyCode(String email, String code) {
-        String key = "verification:" + email;
+    private boolean verifyCode(String email, String code, String prefix) {
+        String key = prefix + email;
         String savedCode = redisTemplate.opsForValue().get(key);
 
         if (savedCode == null) {
@@ -60,6 +62,14 @@ public class VerificationCodeService {
 
         System.out.println("❌ Неверный код для " + email + ". Ожидался: " + savedCode);
         return false;
+    }
+
+    public boolean registrationCode(String email, String code){
+        return verifyCode(email, code, PREFIX_REGISTRATION);
+    }
+
+    public boolean restCode(String email, String code){
+        return verifyCode(email, code, PREFIX_RESET);
     }
 
     /**
