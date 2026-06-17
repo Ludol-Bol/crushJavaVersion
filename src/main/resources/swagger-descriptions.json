@@ -1,0 +1,261 @@
+{
+  "auth": {
+    "checkAutoLogin": {
+      "summary": "Проверка автовхода",
+      "description": "Проверяет, есть ли у пользователя валидный токен автовхода. Если пользователь уже авторизован или токен валиден — возвращает authenticated=true и redirectUrl(ссылка перехода). Если нет — возвращает authenticated=false.",
+      "responses": {
+        "200": {
+          "description": "Успешная проверка",
+          "examples": {
+            "authenticated": {
+              "value": "{\"authenticated\": true, \"redirectUrl\": \"/main-page\"}"
+            },
+            "unauthenticated": {
+              "value": "{\"authenticated\": false}"
+            }
+          }
+        }
+      }
+    },
+    "login": {
+      "summary": "Вход в систему",
+      "description": "Аутентификация пользователя по email/логину и паролю. Если передан rememberMe=true, создаётся токен для автовхода на 30 дней.",
+      "responses": {
+        "200": {
+          "description": "Успешный вход"
+        },
+        "400": {
+          "description": "Неверные данные"
+        },
+        "404": {
+          "description": "Пользователь не найден"
+        }
+      }
+    },
+    "sendVerification": {
+      "summary": "Отправка кода подтверждения",
+      "description": "Проверяет, что email и nickname свободны, генерирует 6-значный код и отправляет его на почту. Код сохраняется в Redis на 5 минут.",
+      "responses": {
+        "200": {
+          "description": "Код отправлен"
+        },
+        "400": {
+          "description": "Ошибка валидации"
+        }
+      }
+    },
+    "verifyAndRegister": {
+      "summary": "Подтверждение регистрации",
+      "description": "Проверяет код из Redis и создаёт нового пользователя в Firebase. После успешной регистрации код удаляется из Redis.",
+      "responses": {
+        "200": {
+          "description": "Регистрация успешна"
+        },
+        "400": {
+          "description": "Неверный код или данные"
+        }
+      }
+    },
+    "resetpassword": {
+      "summary": "Установка нового пароля",
+      "description": "Устанавливает новый пароль для пользователя после успешного подтверждения кода сброса.\n\n**Алгоритм работы:**\n1. Проверяет, что все поля заполнены\n2. Проверяет, что пароль не короче 6 символов\n3. Проверяет, что пароль и подтверждение совпадают\n4. Находит пользователя по email\n5. Хэширует новый пароль\n6. Сохраняет обновлённого пользователя в базе данных\n7. Удаляет код сброса из Redis (если есть)\n\n**Важно:** Этот метод должен вызываться только после успешной проверки кода сброса пароля.",
+      "parameters": [
+        {
+          "name": "email",
+          "in": "query",
+          "description": "Email пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        {
+          "name": "newPassword",
+          "in": "query",
+          "description": "Новый пароль",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "newPassword123"
+          }
+        },
+        {
+          "name": "confirmPassword",
+          "in": "query",
+          "description": "Подтверждение пароля",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "newPassword123"
+          }
+        }
+      ],
+      "requestBody": {
+        "description": "Данные для смены пароля",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Email пользователя",
+                  "example": "user@example.com"
+                },
+                "newPassword": {
+                  "type": "string",
+                  "description": "Новый пароль (минимум 6 символов)",
+                  "example": "newPassword123",
+                  "minLength": 6
+                },
+                "confirmPassword": {
+                  "type": "string",
+                  "description": "Подтверждение нового пароля",
+                  "example": "newPassword123"
+                }
+              },
+              "required": ["email", "newPassword", "confirmPassword"]
+            },
+            "examples": {
+              "valid": {
+                "summary": "Корректный запрос",
+                "value": {
+                  "email": "user@example.com",
+                  "newPassword": "newPassword123",
+                  "confirmPassword": "newPassword123"
+                }
+              },
+              "invalidShortPassword": {
+                "summary": "Слишком короткий пароль",
+                "value": {
+                  "email": "user@example.com",
+                  "newPassword": "123",
+                  "confirmPassword": "123"
+                }
+              },
+              "invalidMismatch": {
+                "summary": "Пароли не совпадают",
+                "value": {
+                  "email": "user@example.com",
+                  "newPassword": "password123",
+                  "confirmPassword": "password456"
+                }
+              },
+              "invalidEmail": {
+                "summary": "Пользователь не найден",
+                "value": {
+                  "email": "notfound@example.com",
+                  "newPassword": "newPassword123",
+                  "confirmPassword": "newPassword123"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Пароль успешно изменён",
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "summary": "Успешная смена пароля",
+                  "value": {
+                    "success": true,
+                    "message": "Пароль успешно изменён!",
+                    "redirectUrl": "/login"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Ошибка валидации данных",
+          "content": {
+            "application/json": {
+              "examples": {
+                "emptyFields": {
+                  "summary": "Не все поля заполнены",
+                  "value": {
+                    "success": false,
+                    "message": "Заполните все поля"
+                  }
+                },
+                "shortPassword": {
+                  "summary": "Пароль слишком короткий",
+                  "value": {
+                    "success": false,
+                    "message": "Пароль должен содержать минимум 6 символов"
+                  }
+                },
+                "passwordsMismatch": {
+                  "summary": "Пароли не совпадают",
+                  "value": {
+                    "success": false,
+                    "message": "Пароли не совпадают"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Пользователь не найден",
+          "content": {
+            "application/json": {
+              "examples": {
+                "userNotFound": {
+                  "summary": "Пользователь с таким email не существует",
+                  "value": {
+                    "success": false,
+                    "message": "Пользователь не найден"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Внутренняя ошибка сервера",
+          "content": {
+            "application/json": {
+              "examples": {
+                "serverError": {
+                  "summary": "Ошибка при сохранении пользователя",
+                  "value": {
+                    "success": false,
+                    "message": "Ошибка: ошибка базы данных"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "logout": {
+      "summary": "Выход из системы",
+      "description": "Завершает текущую сессию пользователя и удаляет токен автовхода. После выхода пользователь перенаправляется на страницу входа.",
+      "responses": {
+        "200": {
+          "description": "Успешный выход из системы",
+          "content": {
+            "application/json": {
+              "example": {
+                "success": true,
+                "redirectUrl": "/login"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Внутренняя ошибка сервера"
+        }
+      }
+    }
+  }
+}
