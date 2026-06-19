@@ -19,28 +19,676 @@
     },
     "login": {
       "summary": "Вход в систему",
-      "description": "Аутентификация пользователя по email/логину и паролю. Если передан rememberMe=true, создаётся токен для автовхода на 30 дней.",
+      "description": "Аутентификация пользователя по email или никнейму и паролю.\n\n**Алгоритм работы:**\n1. Проверяет, что поля не пустые\n2. Ищет пользователя по email или никнейму\n3. Проверяет пароль (сравнивает хэши)\n4. Если пароль верный — создаёт сессию\n5. Если передан `rememberMe: true` — создаёт токен автовхода и сохраняет его в cookie на 30 дней\n6. Возвращает данные пользователя и URL для перенаправления",
+      "parameters": [
+        {
+          "name": "username",
+          "in": "query",
+          "description": "Email или никнейм пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        {
+          "name": "password",
+          "in": "query",
+          "description": "Пароль пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        {
+          "name": "rememberMe",
+          "in": "query",
+          "description": "Флаг 'Запомнить меня'",
+          "required": false,
+          "schema": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      ],
+      "requestBody": {
+        "description": "Данные для входа",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "description": "Email или никнейм пользователя",
+                  "example": "user@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Пароль пользователя",
+                  "example": "password123"
+                },
+                "rememberMe": {
+                  "type": "boolean",
+                  "description": "Флаг 'Запомнить меня'. Если true — создаётся токен автовхода на 30 дней",
+                  "example": true
+                }
+              },
+              "required": ["username", "password", "rememberMe"]
+            },
+            "examples": {
+              "validLogin": {
+                "summary": "Корректный запрос с запоминанием",
+                "value": {
+                  "username": "user@example.com",
+                  "password": "password123",
+                  "rememberMe": true
+                }
+              },
+              "validLoginWithoutRemember": {
+                "summary": "Корректный запрос без запоминания",
+                "value": {
+                  "username": "user@example.com",
+                  "password": "password123",
+                  "rememberMe": false
+                }
+              },
+              "invalidLogin": {
+                "summary": "Неверные данные",
+                "value": {
+                  "username": "wrong@example.com",
+                  "password": "wrongpassword",
+                  "rememberMe": false
+                }
+              }
+            }
+          }
+        }
+      },
       "responses": {
         "200": {
-          "description": "Успешный вход"
-        },
-        "400": {
-          "description": "Неверные данные"
-        },
-        "404": {
-          "description": "Пользователь не найден"
+          "description": "Результат входа",
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "summary": "Успешный вход",
+                  "value": {
+                    "success": true,
+                    "message": "Добро пожаловать, testuser!",
+                    "redirectUrl": "/main-page",
+                    "user": {
+                      "id": "abc123",
+                      "email": "user@example.com",
+                      "nickname": "testuser"
+                    }
+                  }
+                },
+                "invalidCredentials": {
+                  "summary": "Неверный логин или пароль",
+                  "value": {
+                    "success": false,
+                    "message": "Неверный пароль"
+                  }
+                },
+                "userNotFound": {
+                  "summary": "Пользователь не найден",
+                  "value": {
+                    "success": false,
+                    "message": "Пользователь с таким логином/email не найден"
+                  }
+                },
+                "emptyFields": {
+                  "summary": "Пустые поля",
+                  "value": {
+                    "success": false,
+                    "message": "Введите логин или email"
+                  }
+                },
+                "serverError": {
+                  "summary": "Ошибка базы данных",
+                  "value": {
+                    "success": false,
+                    "message": "Ошибка базы данных: connection timeout"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
-    "sendVerification": {
-      "summary": "Отправка кода подтверждения",
-      "description": "Проверяет, что email и nickname свободны, генерирует 6-значный код и отправляет его на почту. Код сохраняется в Redis на 5 минут.",
+    "checkauth": {
+      "summary": "Проверка авторизации пользователя",
+      "description": "Проверяет, авторизован ли пользователь в текущей сессии.\n\n**Алгоритм работы:**\n1. Проверяет наличие пользователя в сессии (`session.getAttribute(\"user\")`)\n2. Если пользователь найден — возвращает его данные (id, email, nickname)\n3. Если не найден — возвращает `authenticated: false`\n\n**Использование:**\n- Вызывается при загрузке страниц для проверки, залогинен ли пользователь\n- Используется на фронтенде для отображения/скрытия элементов (кнопка входа/выхода)",
+      "parameters": [
+        {
+          "name": "JSESSIONID",
+          "in": "cookie",
+          "description": "ID сессии, который автоматически отправляется браузером",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "example": "ABC123DEF456"
+          }
+        }
+      ],
       "responses": {
         "200": {
-          "description": "Код отправлен"
+          "description": "Успешная проверка авторизации",
+          "content": {
+            "application/json": {
+              "examples": {
+                "authenticated": {
+                  "summary": "Пользователь авторизован",
+                  "value": {
+                    "authenticated": true,
+                    "userId": "abc123",
+                    "email": "user@example.com",
+                    "username": "testuser"
+                  }
+                },
+                "unauthenticated": {
+                  "summary": "Пользователь не авторизован",
+                  "value": {
+                    "authenticated": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "forgotpassword": {
+      "summary": "Запрос на сброс пароля",
+      "description": "Отправляет код для сброса пароля на указанный email.\n\n**Алгоритм работы:**\n1. Проверяет, что email введён\n2. Ищет пользователя с таким email в базе данных\n3. Если пользователь найден — генерирует 6-значный код\n4. Сохраняет код в Redis на 5 минут (ключ: `reset:email`)\n5. Отправляет код на почту пользователю\n\n**Важно:** Код действителен 5 минут. После этого нужно запросить новый.",
+      "parameters": [
+        {
+          "name": "email",
+          "in": "query",
+          "description": "Email пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        }
+      ],
+      "requestBody": {
+        "description": "Email пользователя",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Email пользователя",
+                  "example": "user@example.com"
+                }
+              },
+              "required": ["email"]
+            },
+            "examples": {
+              "validRequest": {
+                "summary": "Корректный запрос",
+                "value": {
+                  "email": "user@example.com"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Результат запроса на сброс пароля",
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "summary": "Код отправлен",
+                  "value": {
+                    "success": true,
+                    "message": "Код для сброса пароля отправлен на user@example.com",
+                    "email": "user@example.com"
+                  }
+                },
+                "emailEmpty": {
+                  "summary": "Email не введён",
+                  "value": {
+                    "success": false,
+                    "message": "Введите email"
+                  }
+                },
+                "userNotFound": {
+                  "summary": "Пользователь не найден",
+                  "value": {
+                    "success": false,
+                    "message": "Пользователь с таким email не найден"
+                  }
+                },
+                "serverError": {
+                  "summary": "Ошибка сервера",
+                  "value": {
+                    "success": false,
+                    "message": "Ошибка: ошибка базы данных"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "verifyresetcode": {
+      "summary": "Проверка кода сброса пароля",
+      "description": "Проверяет, что код сброса пароля правильный и не истёк.\n\n**Алгоритм работы:**\n1. Проверяет, что email и code переданы\n2. Проверяет код в Redis (ключ: `reset:email`)\n3. Если код верный и не истёк — возвращает успех\n4. Если код неверный или истёк — возвращает ошибку\n\n**Важно:** Код действителен 5 минут. После проверки код удаляется из Redis.",
+      "parameters": [
+        {
+          "name": "email",
+          "in": "query",
+          "description": "Email пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "user@example.com"
+          }
         },
-        "400": {
-          "description": "Ошибка валидации"
+        {
+          "name": "code",
+          "in": "query",
+          "description": "6-значный код сброса пароля",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "123456",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        }
+      ],
+      "requestBody": {
+        "description": "Email и код для проверки",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Email пользователя",
+                  "example": "user@example.com"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "6-значный код сброса пароля",
+                  "example": "123456",
+                  "minLength": 6,
+                  "maxLength": 6
+                }
+              },
+              "required": ["email", "code"]
+            },
+            "examples": {
+              "validRequest": {
+                "summary": "Корректный запрос",
+                "value": {
+                  "email": "user@example.com",
+                  "code": "123456"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Результат проверки кода",
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "summary": "Код подтверждён",
+                  "value": {
+                    "success": true,
+                    "message": "Код подтверждён",
+                    "email": "user@example.com"
+                  }
+                },
+                "invalidData": {
+                  "summary": "Неверные данные",
+                  "value": {
+                    "success": false,
+                    "message": "Неверные данные"
+                  }
+                },
+                "invalidCode": {
+                  "summary": "Неверный или истекший код",
+                  "value": {
+                    "success": false,
+                    "message": "Неверный или истекший код"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "verifyandregister": {
+      "summary": "Подтверждение регистрации",
+      "description": "Завершает регистрацию пользователя: проверяет код подтверждения, создаёт пользователя в Firebase и назначает роль 'USER'.\n\n**Алгоритм работы:**\n1. Проверяет код подтверждения в Redis (ключ: `verification:email`)\n2. Проверяет, что email не занят\n3. Проверяет, что никнейм не занят\n4. Создаёт нового пользователя с хэшированным паролем\n5. Назначает пользователю роль 'USER'\n6. Сохраняет пользователя в Firestore\n7. Удаляет код подтверждения из Redis\n\n**Важно:** Этот метод вызывается после успешной отправки кода на почту.",
+      "parameters": [
+        {
+          "name": "email",
+          "in": "query",
+          "description": "Email пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        {
+          "name": "nickname",
+          "in": "query",
+          "description": "Никнейм пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "testuser"
+          }
+        },
+        {
+          "name": "password",
+          "in": "query",
+          "description": "Пароль (минимум 6 символов)",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        {
+          "name": "confirmPassword",
+          "in": "query",
+          "description": "Подтверждение пароля",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        {
+          "name": "birthDate",
+          "in": "query",
+          "description": "Дата рождения в формате yyyy-MM-dd",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "1990-01-01"
+          }
+        },
+        {
+          "name": "verificationCode",
+          "in": "query",
+          "description": "6-значный код подтверждения из Redis",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "123456",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        },
+        {
+          "name": "JSESSIONID",
+          "in": "cookie",
+          "description": "ID сессии (автоматически отправляется браузером)",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "example": "ABC123DEF456"
+          }
+        }
+      ],
+      "requestBody": {
+        "description": "Данные для завершения регистрации",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Email пользователя",
+                  "example": "user@example.com"
+                },
+                "nickname": {
+                  "type": "string",
+                  "description": "Никнейм пользователя",
+                  "example": "testuser"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Пароль (минимум 6 символов)",
+                  "example": "password123"
+                },
+                "confirmPassword": {
+                  "type": "string",
+                  "description": "Подтверждение пароля",
+                  "example": "password123"
+                },
+                "birthDate": {
+                  "type": "string",
+                  "description": "Дата рождения в формате yyyy-MM-dd",
+                  "example": "1990-01-01"
+                },
+                "verificationCode": {
+                  "type": "string",
+                  "description": "6-значный код подтверждения из Redis",
+                  "example": "123456",
+                  "minLength": 6,
+                  "maxLength": 6
+                }
+              },
+              "required": ["email", "nickname", "password", "confirmPassword", "birthDate", "verificationCode"]
+            },
+            "examples": {
+              "validRequest": {
+                "summary": "Корректный запрос",
+                "value": {
+                  "email": "user@example.com",
+                  "nickname": "testuser",
+                  "password": "password123",
+                  "confirmPassword": "password123",
+                  "birthDate": "1990-01-01",
+                  "verificationCode": "123456"
+                }
+              },
+              "invalidCode": {
+                "summary": "Неверный код подтверждения",
+                "value": {
+                  "email": "user@example.com",
+                  "nickname": "testuser",
+                  "password": "password123",
+                  "confirmPassword": "password123",
+                  "birthDate": "1990-01-01",
+                  "verificationCode": "999999"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Результат регистрации",
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "summary": "Регистрация успешна",
+                  "value": {
+                    "success": true,
+                    "message": "Регистрация успешна!",
+                    "redirectUrl": "/login"
+                  }
+                },
+                "invalidCode": {
+                  "summary": "Неверный код подтверждения",
+                  "value": {
+                    "success": false,
+                    "message": "Неверный или истекший код подтверждения"
+                  }
+                },
+                "emailTaken": {
+                  "summary": "Email уже зарегистрирован",
+                  "value": {
+                    "success": false,
+                    "message": "Этот email уже зарегистрирован"
+                  }
+                },
+                "nicknameTaken": {
+                  "summary": "Никнейм уже занят",
+                  "value": {
+                    "success": false,
+                    "message": "Этот никнейм уже занят"
+                  }
+                },
+                "serverError": {
+                  "summary": "Ошибка сервера",
+                  "value": {
+                    "success": false,
+                    "message": "Ошибка: ошибка базы данных"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sendverification": {
+      "summary": "Отправка кода подтверждения",
+      "description": "Отправляет код подтверждения на почту для завершения регистрации.\n\n**Алгоритм работы:**\n1. Проверяет, что email не зарегистрирован\n2. Проверяет, что никнейм не занят\n3. Генерирует 6-значный код\n4. Сохраняет код в Redis на 5 минут (ключ: `verification:email`)\n5. Отправляет код на почту пользователю\n\n**Важно:** Код действителен 5 минут. После этого нужно запросить новый.",
+      "parameters": [
+        {
+          "name": "email",
+          "in": "query",
+          "description": "Email пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        {
+          "name": "nickname",
+          "in": "query",
+          "description": "Никнейм пользователя",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "testuser"
+          }
+        }
+      ],
+      "requestBody": {
+        "description": "Данные пользователя для регистрации",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Email пользователя",
+                  "example": "user@example.com"
+                },
+                "nickname": {
+                  "type": "string",
+                  "description": "Никнейм пользователя",
+                  "example": "testuser"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Пароль (минимум 6 символов)",
+                  "example": "password123"
+                },
+                "confirmPassword": {
+                  "type": "string",
+                  "description": "Подтверждение пароля",
+                  "example": "password123"
+                },
+                "birthDate": {
+                  "type": "string",
+                  "description": "Дата рождения в формате yyyy-MM-dd",
+                  "example": "1990-01-01"
+                }
+              },
+              "required": ["email", "nickname", "password", "confirmPassword", "birthDate"]
+            },
+            "examples": {
+              "validRequest": {
+                "summary": "Корректный запрос",
+                "value": {
+                  "email": "user@example.com",
+                  "nickname": "testuser",
+                  "password": "password123",
+                  "confirmPassword": "password123",
+                  "birthDate": "1990-01-01"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Результат отправки кода",
+          "content": {
+            "application/json": {
+              "examples": {
+                "success": {
+                  "summary": "Код отправлен",
+                  "value": {
+                    "success": true,
+                    "message": "Код подтверждения отправлен на user@example.com"
+                  }
+                },
+                "emailTaken": {
+                  "summary": "Email уже зарегистрирован",
+                  "value": {
+                    "success": false,
+                    "message": "Этот email уже зарегистрирован"
+                  }
+                },
+                "nicknameTaken": {
+                  "summary": "Никнейм уже занят",
+                  "value": {
+                    "success": false,
+                    "message": "Этот никнейм уже занят"
+                  }
+                },
+                "serverError": {
+                  "summary": "Ошибка сервера",
+                  "value": {
+                    "success": false,
+                    "message": "Ошибка: ошибка базы данных"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -237,6 +885,47 @@
         }
       }
     },
+    "checkautologin": {
+      "summary": "Проверка автовхода",
+      "description": "Проверяет, авторизован ли пользователь.\n\n**Алгоритм работы:**\n1. Проверяет наличие активной сессии\n2. Если сессии нет — проверяет cookie с токеном `auto_login_token`\n3. Если токен валидный и не истёк — загружает пользователя из БД и создаёт сессию\n4. Возвращает статус авторизации\n\n**Важно:** Этот метод вызывается при загрузке страницы для автоматического входа.",
+      "parameters": [
+        {
+          "name": "auto_login_token",
+          "in": "cookie",
+          "description": "Токен автовхода, который сохраняется в cookie после входа с галочкой 'Запомнить меня'",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "example": "a1b2c3d4e5f6g7h8i9j0"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Успешная проверка авторизации",
+          "content": {
+            "application/json": {
+              "examples": {
+                "authenticated": {
+                  "summary": "Пользователь авторизован",
+                  "value": {
+                    "authenticated": true,
+                    "redirectUrl": "/main-page"
+                  }
+                },
+                "unauthenticated": {
+                  "summary": "Пользователь не авторизован",
+                  "value": {
+                    "authenticated": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
     "logout": {
       "summary": "Выход из системы",
       "description": "Завершает текущую сессию пользователя и удаляет токен автовхода. После выхода пользователь перенаправляется на страницу входа.",
