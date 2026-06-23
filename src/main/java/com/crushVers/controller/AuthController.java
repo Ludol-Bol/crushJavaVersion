@@ -3,34 +3,36 @@ import com.crushVers.dto.VerificationRequest;
 import com.crushVers.model.User;
 import com.crushVers.model.UserRole;
 import com.crushVers.model.UserToken;
-import com.crushVers.service.EmailService;
 import com.crushVers.service.FirestoreService;
 import com.crushVers.service.UserRoleService;
 import com.crushVers.service.VerificationCodeService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/api")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final FirestoreService firestoreService;
     private final UserRoleService userRoleService;
     private final VerificationCodeService verificationCodeService;
-    private final EmailService emailService;
 
-    public AuthController(FirestoreService firestoreService, UserRoleService userRoleService,VerificationCodeService verificationCodeService,
-                          EmailService emailService) {
+
+    public AuthController(FirestoreService firestoreService, UserRoleService userRoleService,VerificationCodeService verificationCodeService) {
         this.firestoreService = firestoreService;
         this.userRoleService = userRoleService;
         this.verificationCodeService = verificationCodeService;
-        this.emailService = emailService;
+
     }
 
     /**
@@ -62,7 +64,7 @@ public class AuthController {
                             }
                         }
                     } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
+                        log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
                     }
                 }
             }
@@ -126,7 +128,7 @@ public class AuthController {
                     cookie.setSecure(false);   // Для localhost (true для HTTPS)
                     response.addCookie(cookie);
                 }
-                // =========================================
+
 
                 return Map.of(
                         "success", true,
@@ -146,7 +148,7 @@ public class AuthController {
             }
 
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
             return Map.of(
                     "success", false,
                     "message", "Ошибка базы данных: " + e.getMessage()
@@ -193,6 +195,7 @@ public class AuthController {
             );
 
         } catch (ExecutionException | InterruptedException e) {
+            log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
             return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
         }
     }
@@ -240,6 +243,7 @@ public class AuthController {
             );
 
         } catch (Exception e) {
+            log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
             return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
         }
     }
@@ -267,6 +271,7 @@ public class AuthController {
             );
 
         } catch (ExecutionException | InterruptedException e) {
+            log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
             return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
         }
     }
@@ -331,6 +336,7 @@ public class AuthController {
             );
 
         } catch (Exception e) {
+            log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
             return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
         }
     }
