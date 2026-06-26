@@ -1,10 +1,12 @@
 package com.crushVers.controller;
 import com.crushVers.dto.VerificationRequest;
+import com.crushVers.enums.LogoutReason;
 import com.crushVers.model.User;
 import com.crushVers.model.UserRole;
 import com.crushVers.model.UserToken;
 import com.crushVers.service.FirestoreService;
 import com.crushVers.service.UserRoleService;
+import com.crushVers.service.UserSessionService;
 import com.crushVers.service.VerificationCodeService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,13 +28,14 @@ public class AuthController {
     private final FirestoreService firestoreService;
     private final UserRoleService userRoleService;
     private final VerificationCodeService verificationCodeService;
+    private final UserSessionService userSessionService;
 
 
-    public AuthController(FirestoreService firestoreService, UserRoleService userRoleService,VerificationCodeService verificationCodeService) {
+    public AuthController(FirestoreService firestoreService, UserRoleService userRoleService, VerificationCodeService verificationCodeService, UserSessionService userSessionService) {
         this.firestoreService = firestoreService;
         this.userRoleService = userRoleService;
         this.verificationCodeService = verificationCodeService;
-
+        this.userSessionService = userSessionService;
     }
 
     /**
@@ -77,7 +80,7 @@ public class AuthController {
     //авторизация
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> loginData,
-                                     HttpSession session, HttpServletResponse response) {
+                                     HttpSession session,HttpServletRequest request, HttpServletResponse response) {
         // получение введенных данных
         String login = loginData.get("username");
         String password = loginData.get("password");
@@ -108,7 +111,7 @@ public class AuthController {
                 session.setAttribute("user", user);
                 session.setAttribute("userId", user.getId());
                 session.setAttribute("userNickname", user.getNickname());
-
+                userSessionService.saveSession(user, session.getId(), request);
                 if (rememberMe) {
                     String token = UUID.randomUUID().toString().replace("-", "");
 
@@ -343,8 +346,12 @@ public class AuthController {
 
     //выход
     @PostMapping("/logout")
-    public Map<String, Object> logout(HttpSession session, HttpServletRequest request, HttpServletResponse response) {
-        // Удаляем токен из БД и cookie
+    public Map<String, Object> logout(HttpSession session,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
+        String sessionId = session.getId();
+        log.info("Выход пользователя, сессия: {}", sessionId);
+        userSessionService.endSession(sessionId, LogoutReason.MANUAL);
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -352,7 +359,7 @@ public class AuthController {
                     try {
                         firestoreService.deleteUserToken(cookie.getValue());
                     } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
+                        log.error("Ошибка удаления токена: {}", e.getMessage(), e);
                     }
                     cookie.setMaxAge(0);
                     cookie.setPath("/");
@@ -361,6 +368,7 @@ public class AuthController {
             }
         }
         session.invalidate();
+        log.info("Сессия завершена: {}", sessionId);
         return Map.of("success", true, "redirectUrl", "/login");
     }
 }

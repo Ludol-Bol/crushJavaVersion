@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход | CrushVerse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,8 +13,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #684F66;
+            background: linear-gradient(135deg, #E0D4E8 21%, #A4798D 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -26,8 +28,8 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 450px;
-            padding: 40px;
+            max-width: 420px;
+            padding: 40px 35px;
             animation: fadeIn 0.5s ease;
         }
 
@@ -42,28 +44,31 @@
             }
         }
 
+
         .logo {
             text-align: center;
             margin-bottom: 30px;
         }
 
         .logo h1 {
-            font-size: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 28px;
+           background: #684F66;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: 1px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
+            margin-bottom: 6px;
             font-weight: 500;
+            font-size: 14px;
+            color: #684F66;
         }
 
         .input-wrapper {
@@ -77,35 +82,41 @@
             padding: 12px 40px 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.3s ease;
             outline: none;
+            background: #fafafa;
+            color: #684F66;
         }
 
         .input-wrapper input:focus {
-            border-color: #667eea;
+            border-color: #684F66;
+            background: white;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
+
 
         .password-toggle {
             position: absolute;
             right: 12px;
             cursor: pointer;
             user-select: none;
-            font-size: 20px;
+            font-size: 18px;
             color: #999;
             transition: color 0.3s ease;
+            background: none;
+            border: none;
         }
 
         .password-toggle:hover {
-            color: #667eea;
+            color: #684F66;
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 25px;
+            margin: 20px 0 25px 0;
         }
 
         .remember-me {
@@ -113,26 +124,24 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
+            color: #555;
+            font-size: 14px;
         }
 
         .remember-me input {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
-            accent-color: #667eea;
-        }
-
-        .remember-me span {
-            color: #666;
-            font-size: 14px;
+            accent-color: #684F66;
         }
 
         .forgot-password {
-            color: #667eea;
-            text-decoration: none;
+            color: #684F66;
             font-size: 14px;
-            transition: color 0.3s ease;
             cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.3s ease;
         }
 
         .forgot-password:hover {
@@ -140,58 +149,74 @@
             text-decoration: underline;
         }
 
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            padding: 13px 10px;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
         }
 
-        .login-btn:hover {
+        .btn-login {
+            background: #E0D4E8;
+            color: #684F66;
+        }
+
+        .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 20px rgba(164, 121, 141, 0.35);
         }
 
-        .login-btn:active {
-            transform: translateY(0);
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        .register-link {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-            color: #666;
+        .btn-register {
+            background: #E0D4E8;
+            color: #684F66;
         }
 
-        .register-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .register-link a:hover {
-            text-decoration: underline;
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(164, 121, 141, 0.35);
         }
 
         .error-message {
             background: #fee;
             color: #c33;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
             margin-bottom: 20px;
             font-size: 14px;
             display: none;
+            border-left: 4px solid #e74c3c;
         }
 
         .error-message.show {
             display: block;
+        }
+
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -199,42 +224,45 @@
 <div class="login-container">
     <div class="logo">
         <h1>💕 CrushVerse</h1>
+        <img src="/images/startPhoto.png" alt="CrushVerse" style="height: 300px; width: auto; margin-top: 15px;">
     </div>
 
     <div id="errorMessage" class="error-message"></div>
 
     <form id="loginForm">
         <div class="form-group">
-            <label for="username">Логин или Email</label>
+            <label for="username">Email или Никнейм</label>
             <div class="input-wrapper">
-                <input type="text" id="username" name="username"
-                       placeholder="Введите ваш логин или email" required>
+                <input type="text" id="username" name="username" required>
             </div>
         </div>
 
         <div class="form-group">
             <label for="password">Пароль</label>
             <div class="input-wrapper">
-                <input type="password" id="password" name="password"
-                       placeholder="Введите пароль" required>
-                <span class="password-toggle" onclick="togglePassword()">
-                        👁️
-                    </span>
+                <input type="password" id="password" name="password" required>
+                <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
             </div>
         </div>
 
+        <!-- ЧЕКБОКС + ЗАБЫЛИ ПАРОЛЬ -->
         <div class="checkbox-group">
             <label class="remember-me">
                 <input type="checkbox" id="rememberMe">
                 <span>Запомнить меня</span>
             </label>
-            <a class="forgot-password" onclick="goToForgotPassword()">Забыли пароль?</a>
+            <button type="button" class="forgot-password" onclick="goToForgotPassword()">
+                Забыли пароль?
+            </button>
         </div>
-        <button type="submit" class="login-btn" id="submitBtn">Войти</button>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-login" id="submitBtn">Вход</button>
+            <button type="button" class="btn btn-register" onclick="goToRegister()">Регистрация</button>
+        </div>
+
     </form>
 
-    <div class="register-link">Нет аккаунта? <a href="/register">Зарегистрироваться</a>
-    </div>
 </div>
 
 <script>
@@ -248,11 +276,16 @@
             toggleIcon.textContent = '🙈';
         } else {
             passwordInput.type = 'password';
-            toggleIcon.textContent = '👁️';
+            toggleIcon.textContent = '🙉';
         }
     }
 
-    // Переход на страницу "Забыли пароль?"
+
+    function goToRegister() {
+        window.location.href = '/register';
+    }
+
+
     function goToForgotPassword() {
         window.location.href = '/forgot-password';
     }
@@ -262,7 +295,6 @@
         try {
             const response = await fetch('/api/check-auto-login');
             const data = await response.json();
-
             if (data.authenticated && data.redirectUrl) {
                 window.location.href = data.redirectUrl;
             }
@@ -278,7 +310,6 @@
         if (savedUsername) {
             document.getElementById('username').value = savedUsername;
         }
-
         if (rememberMe === 'true') {
             document.getElementById('rememberMe').checked = true;
         }
@@ -301,7 +332,7 @@
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        const username = document.getElementById('username').value;
+        const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('rememberMe').checked;
         const submitBtn = document.getElementById('submitBtn');
@@ -337,13 +368,13 @@
             } else {
                 showError(data.message || 'Неверный логин или пароль');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Войти';
+                submitBtn.textContent = 'Вход';
             }
         } catch (error) {
             console.error('Ошибка:', error);
             showError('Ошибка соединения с сервером');
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Войти';
+            submitBtn.textContent = 'Вход';
         }
     });
 

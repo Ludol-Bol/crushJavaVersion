@@ -928,21 +928,51 @@
 
     "logout": {
       "summary": "Выход из системы",
-      "description": "Завершает текущую сессию пользователя и удаляет токен автовхода. После выхода пользователь перенаправляется на страницу входа.",
+      "description": "Завершает текущую сессию пользователя.\n\n**Алгоритм работы:**\n1. Завершает сессию в Firestore (устанавливает `active = false` и `logoutReason = manual`)\n2. Удаляет токен автовхода из cookie токена автовхода, если он был создан\n3. Завершает сессию Spring (`session.invalidate()`)\n\n**Результат:**\n- Сессия становится неактивной\n- Пользователь перенаправляется на страницу входа",
+      "parameters": [
+        {
+          "name": "SessionID",
+          "in": "cookie",
+          "description": "ID текущей сессии (автоматически отправляется браузером)",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "example": "ABC123DEF456"
+          }
+        }
+      ],
       "responses": {
         "200": {
           "description": "Успешный выход из системы",
           "content": {
             "application/json": {
-              "example": {
-                "success": true,
-                "redirectUrl": "/login"
+              "examples": {
+                "success": {
+                  "summary": "Успешный выход",
+                  "value": {
+                    "success": true,
+                    "redirectUrl": "/login"
+                  }
+                }
               }
             }
           }
         },
-        "500": {
-          "description": "Внутренняя ошибка сервера"
+        "401": {
+          "description": "Пользователь не авторизован",
+          "content": {
+            "application/json": {
+              "examples": {
+                "unauthorized": {
+                  "summary": "Нет активной сессии",
+                  "value": {
+                    "success": false,
+                    "message": "Пользователь не авторизован"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
