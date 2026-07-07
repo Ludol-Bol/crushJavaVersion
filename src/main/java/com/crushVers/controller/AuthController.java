@@ -227,7 +227,6 @@ public class AuthController {
             user.setNickname(request.getNickname());
             user.setPasswordHash(firestoreService.hashPassword(request.getPassword()));
             java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd");
-            user.setBirthDate(dateFormat.parse(request.getBirthDate()));
             user.setCreatedAt(new java.util.Date());
             //делаем роль
             UserRole userRole = userRoleService.findByName("USER");
@@ -341,6 +340,22 @@ public class AuthController {
         } catch (Exception e) {
             log.error("Ошибка при выполнении запроса: {}", e.getMessage(), e);
             return Map.of("success", false, "message", "Ошибка: " + e.getMessage());
+        }
+    }
+    /**
+     *  Проверка сущестование в бд пользователя с емайл
+     */
+    @GetMapping("/check-email")
+    public Map<String, Object> checkEmail(@RequestParam String email) {
+        try {
+            User user = firestoreService.findByEmail(email);
+            if (user != null) {
+                return Map.of("exists", true, "message", "Пользователь с таким email уже существует");
+            }
+            return Map.of("exists", false);
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Ошибка проверки email: {}", e.getMessage(), e);
+            return Map.of("exists", false, "error", e.getMessage());
         }
     }
 

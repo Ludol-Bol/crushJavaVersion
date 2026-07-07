@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Подтверждение | CrushVerse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,8 +13,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #684F66;
+            background: linear-gradient(135deg, #E0D4E8 21%, #A4798D 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -26,8 +28,8 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 450px;
-            padding: 40px;
+            max-width: 420px;
+            padding: 40px 35px;
             animation: fadeIn 0.5s ease;
             text-align: center;
         }
@@ -49,21 +51,32 @@
         }
 
         .logo h1 {
+            font-size: 28px;
+            color: #684F66;
+            letter-spacing: 1px;
+        }
+
+        .logo .heart {
+            color: #A4798D;
             font-size: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-right: 8px;
+        }
+
+        .logo .title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
         }
 
         .info-text {
             color: #666;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             line-height: 1.6;
+            font-size: 14px;
         }
 
         .info-text strong {
-            color: #667eea;
+            color: #684F66;
         }
 
         .code-input-group {
@@ -73,27 +86,29 @@
         .code-inputs {
             display: flex;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .code-digit {
-            width: 55px;
-            height: 70px;
+            width: 50px;
+            height: 60px;
             text-align: center;
-            font-size: 32px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Roboto', sans-serif;
             border: 2px solid #e0e0e0;
-            border-radius: 12px;
+            border-radius: 10px;
             outline: none;
             transition: all 0.3s ease;
-            background: #f9f9f9;
+            background: #fafafa;
+            color: #684F66;
         }
 
         .code-digit:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #684F66;
             background: white;
+            box-shadow: 0 0 0 3px rgba(104, 79, 102, 0.15);
         }
 
         .code-digit.error {
@@ -108,59 +123,92 @@
         }
 
         .timer {
-            background: #f0f0f0;
+            background: #f5f0f2;
             padding: 10px;
             border-radius: 10px;
             margin: 20px 0;
             font-size: 14px;
-            color: #666;
+            color: #684F66;
         }
 
         .timer span {
-            font-weight: bold;
+            font-weight: 700;
             font-size: 18px;
-            color: #667eea;
+            color: #A4798D;
         }
 
         .resend-btn {
             background: none;
             border: none;
-            color: #667eea;
+            color: #684F66;
             cursor: pointer;
             font-size: 14px;
             margin: 10px 0;
             text-decoration: underline;
+            font-family: 'Roboto', sans-serif;
+            transition: color 0.3s ease;
+        }
+
+        .resend-btn:hover {
+            color: #A4798D;
         }
 
         .resend-btn:disabled {
-            color: #999;
+            color: #b8a0b0;
             cursor: not-allowed;
             text-decoration: none;
         }
 
         .verify-btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 13px;
+            background: #E0D4E8;
+            color: #684F66;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
+            font-family: 'Roboto', sans-serif;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             margin-top: 10px;
+            min-height: 50px;
         }
 
         .verify-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 20px rgba(164, 121, 141, 0.35);
         }
 
         .verify-btn:disabled {
-            opacity: 0.6;
+            opacity: 0.7;
             cursor: not-allowed;
             transform: none;
+        }
+
+        /* ===== СПИННЕР (загрузка) ===== */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 22px;
+            height: 22px;
+            margin: -11px 0 0 -11px;
+            border: 3px solid rgba(104, 79, 102, 0.2);
+            border-top: 3px solid #684F66;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .back-link {
@@ -168,10 +216,11 @@
             margin-top: 25px;
             padding-top: 20px;
             border-top: 1px solid #e0e0e0;
+            font-size: 14px;
         }
 
         .back-link a {
-            color: #667eea;
+            color: #684F66;
             text-decoration: none;
             font-weight: 600;
         }
@@ -186,6 +235,7 @@
             margin-bottom: 20px;
             font-size: 14px;
             display: none;
+            font-family: 'Roboto', sans-serif;
         }
 
         .message.success {
@@ -205,16 +255,26 @@
             color: #1976d2;
             display: block;
         }
+
+        @media (max-width: 480px) {
+            .verify-container {
+                padding: 30px 20px;
+            }
+            .code-digit {
+                width: 40px;
+                height: 50px;
+                font-size: 22px;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="verify-container">
     <div class="logo">
-        <h1>💕 CrushVerse</h1>
-    </div>
-
-    <div id="message" class="message info">
-        ✉️ Код подтверждения отправлен на вашу почту
+        <h1>
+            <span class="heart">💕</span>
+            <span class="title">Подтверждение</span>
+        </h1>
     </div>
 
     <div class="info-text">
@@ -257,7 +317,6 @@
     let password = '';
     let timerInterval;
     let timeLeft = 300;
-    let codeSent = false; // ← ФЛАГ, ЧТОБЫ КОД ОТПРАВЛЯЛСЯ ТОЛЬКО 1 РАЗ
 
     window.onload = function() {
         email = localStorage.getItem('reg_email') || '';
@@ -275,44 +334,10 @@
 
         document.getElementById('userEmail').textContent = email;
 
-        // Отправляем код ТОЛЬКО 1 РАЗ
-        if (!codeSent) {
-            codeSent = true;
-            sendVerificationCode();
-        }
-
+        // Код уже отправлен из register.html, не отправляем повторно
         startTimer();
         setupCodeInputs();
     };
-
-    async function sendVerificationCode() {
-        try {
-            const response = await fetch('/api/send-verification', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    nickname: nickname,
-                    birthDate: birthDate,
-                    password: password
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showMessage('Код отправлен на ' + email, 'success');
-                resetTimer();
-            } else {
-                showMessage(result.message || 'Ошибка отправки кода', 'error');
-                codeSent = false;
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showMessage('Ошибка соединения с сервером', 'error');
-            codeSent = false;
-        }
-    }
 
     async function resendCode() {
         const resendBtn = document.getElementById('resendBtn');
@@ -365,7 +390,7 @@
 
         const verifyBtn = document.getElementById('verifyBtn');
         verifyBtn.disabled = true;
-        verifyBtn.textContent = 'Проверка...';
+        verifyBtn.classList.add('btn-loading');
 
         try {
             const response = await fetch('/api/verify-and-register', {
@@ -397,13 +422,13 @@
                 showMessage(result.message || 'Неверный код', 'error');
                 clearCodeInputs();
                 verifyBtn.disabled = false;
-                verifyBtn.textContent = 'Подтвердить';
+                verifyBtn.classList.remove('btn-loading');
             }
         } catch (error) {
             console.error('Ошибка:', error);
             showMessage('Ошибка соединения с сервером', 'error');
             verifyBtn.disabled = false;
-            verifyBtn.textContent = 'Подтвердить';
+            verifyBtn.classList.remove('btn-loading');
         }
     }
 

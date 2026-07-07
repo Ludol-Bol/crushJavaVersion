@@ -21,9 +21,6 @@ public class User {
     @PropertyName("password_hash")
     private String passwordHash;
 
-    @PropertyName("birth_date")
-    private Date birthDate;
-
     @PropertyName("created_at")
     @ServerTimestamp
     private Date createdAt;
@@ -43,7 +40,6 @@ public class User {
         this.email = email;
         this.nickname = nickname;
         this.passwordHash = passwordHash;
-        this.birthDate = birthDate;
         this.icon = null;
     }
 
@@ -65,10 +61,6 @@ public class User {
         return passwordHash;
     }
 
-    @PropertyName("birth_date")
-    public Date getBirthDate() {
-        return birthDate;
-    }
 
     @PropertyName("created_at")
     public Date getCreatedAt() {
@@ -99,11 +91,6 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    @PropertyName("birth_date")
-    public void setBirthDate(Date birthDate) {
-        this.birthDate = birthDate;
-    }
-
     @PropertyName("created_at")
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
@@ -128,7 +115,6 @@ public class User {
                 "id='" + id + '\'' +
                 ", email='" + email + '\'' +
                 ", nickname='" + nickname + '\'' +
-                ", birthDate=" + birthDate +
                 ", createdAt=" + createdAt +
                 ", icon='" + icon + '\'' +
                 ", roledId='" + String.join(", ", roleIds) + '\'' +

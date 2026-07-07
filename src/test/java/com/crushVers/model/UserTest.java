@@ -22,8 +22,6 @@ class UserTest {
         user.setNickname("testuser");
         user.setPasswordHash("hashed_password_123");
         LocalDate localDate = LocalDate.of(1990, 1, 1);
-        Date birthDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        user.setBirthDate(birthDate);
         user.setCreatedAt(new Date());
         String base64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
         user.setIcon(base64Image);
@@ -45,7 +43,6 @@ class UserTest {
         assertEquals("new@example.com", newUser.getEmail());
         assertEquals("newuser", newUser.getNickname());
         assertEquals("hashed_pass", newUser.getPasswordHash());
-        assertEquals(birthDate, newUser.getBirthDate());
         assertNull(newUser.getIcon());
     }
 
@@ -91,19 +88,6 @@ class UserTest {
     void testSetPasswordHash() {
         user.setPasswordHash("new_hash_456");
         assertEquals("new_hash_456", user.getPasswordHash());
-    }
-
-    @Test
-    void testGetBirthDate() {
-        assertNotNull(user.getBirthDate());
-    }
-
-    @Test
-    void testSetBirthDate() {
-        LocalDate localDate = LocalDate.of(1995, 3, 1);
-        Date newBirthDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        user.setBirthDate(newBirthDate);
-        assertEquals(newBirthDate, user.getBirthDate());
     }
 
     @Test
@@ -196,14 +180,6 @@ class UserTest {
         user.setNickname(longNickname);
         assertEquals(100, user.getNickname().length());
     }
-
-    @Test
-    void testFutureBirthDate() {
-        Date futureDate = new Date(System.currentTimeMillis() + 1000000000L);
-        user.setBirthDate(futureDate);
-        assertEquals(futureDate, user.getBirthDate());
-    }
-
 
     @Test
     void testUserWithMultipleRoles() {
