@@ -2,8 +2,12 @@ package com.crushVers.config;
 
 import com.crushVers.model.User;
 import com.crushVers.model.UserRole;
+import com.crushVers.model.ZodiacSign;
 import com.crushVers.service.FirestoreService;
 import com.crushVers.service.UserRoleService;
+import com.crushVers.service.BaseDictionaryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +24,14 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private final UserRoleService userRoleService;
     private final FirestoreService firestoreService;
+    private final BaseDictionaryService baseDictionaryService;
 
-    public DatabaseInitializer(UserRoleService userRoleService, FirestoreService firestoreService) {
+    private final Logger log = LoggerFactory.getLogger(DatabaseInitializer.class);
+
+    public DatabaseInitializer(UserRoleService userRoleService, FirestoreService firestoreService, BaseDictionaryService baseDictionaryService) {
         this.userRoleService = userRoleService;
         this.firestoreService = firestoreService;
+        this.baseDictionaryService = baseDictionaryService;
     }
 
     @Override
@@ -32,6 +40,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         initUserRoles();
         //назначем роль User всем к кого ее нет
         assignDefaultRoleToAllUsers();
+        //добавление ЗЗ
+        initZodiacSigns();
     }
 
     /**
@@ -94,4 +104,45 @@ public class DatabaseInitializer implements CommandLineRunner {
             }
         }
     }
+    /**
+     * Инициализация ЗЗ
+     */
+    private void initZodiacSigns() throws ExecutionException, InterruptedException {
+        log.info("\nПроверка знаков зодиака");
+        String[][] zodiacData = {
+                {"Овен"},
+                {"Телец"},
+                {"Близнецы"},
+                {"Рак"},
+                {"Лев"},
+                {"Дева"},
+                {"Весы"},
+                {"Скорпион"},
+                {"Стрелец"},
+                {"Козерог"},
+                {"Водолей"},
+                {"Рыбы"}
+        };
+        int createdCount = 0;
+        int existingCount = 0;
+
+        for (String[] data : zodiacData) {
+            String name = data[0];
+            String description = data[1];
+
+            ZodiacSign existing = baseDictionaryService.findByField(
+                   "zodiac_signs", ZodiacSign.class, "name", name
+            );
+
+            if (existing == null) {
+                ZodiacSign sign = new ZodiacSign(name, description);
+                baseDictionaryService.save("zodiac_signs", sign);
+                log.info("создан знак зодиака: {}", name);
+                createdCount++;
+            }
+        }
+        log.info("Создано новых: {}", createdCount);
+        log.info("Обновлено существующих: {}", existingCount);
+    }
+
 }
