@@ -40,8 +40,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         initUserRoles();
         //назначем роль User всем к кого ее нет
         assignDefaultRoleToAllUsers();
-        //добавление ЗЗ
-        initZodiacSigns();
+        //добавление ЗЗ, тут error
+        //initZodiacSigns();
     }
 
     /**
