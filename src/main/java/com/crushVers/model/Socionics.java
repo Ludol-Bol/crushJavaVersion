@@ -16,6 +16,11 @@ public class Socionics {
     @DocumentId
     private String id;
     /**
+     * Аббревиатура?, пока хз как назвать
+     */
+    @PropertyName("short_id")
+    private String shortId;
+    /**
      * Полное наименование
      */
     @PropertyName("full_name")
@@ -31,7 +36,8 @@ public class Socionics {
     @PropertyName("description")
     private String description;
 
-    public Socionics( String fullName, String shortName, String description) {
+    public Socionics( String shortId,String fullName, String shortName, String description) {
+        this.shortId = shortId;
         this.fullName = fullName;
         this.shortName = shortName;
         this.description = description;

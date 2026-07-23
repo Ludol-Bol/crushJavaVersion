@@ -19,7 +19,7 @@ public class ZodiacSign {
     @PropertyName("name")
     private String name;
 
-    public ZodiacSign(String name, String description) {
+    public ZodiacSign(String name) {
         this.name = name;
     }
 }

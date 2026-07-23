@@ -26,10 +26,15 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 
 test {
     useJUnitPlatform()
+    jvmArgs = [
+            '-XX:+EnableDynamicAgentLoading',
+            '-Djdk.instrument.traceUsage'
+    ]
 }
