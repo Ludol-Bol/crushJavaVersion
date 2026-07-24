@@ -1,45 +1,32 @@
 package com.crushVers.model;
-
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Universe {
+public class Genre {
     /**
-     * id
+     * ИД
      */
     @DocumentId
     private String id;
     /**
-     * название
+     * Название тега
      */
     @PropertyName("name")
     private String name;
     /**
-     * Описание
+     * Описание (потом можно будет заполнить как то)
      */
     @PropertyName("description")
     private String description;
-    /**
-     * Жанры
-     */
-    @PropertyName("genre_id")
-    private List<String> genreIds;
 
-    public Universe(String name){
-        this.name = name;
-    }
-
-    public Universe(String name, String description, List<String> genreIds){
+    public Genre(String name, String description){
         this.name = name;
         this.description = description;
-        this.genreIds = genreIds;
     }
 }

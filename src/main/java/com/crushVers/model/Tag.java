@@ -1,5 +1,6 @@
 package com.crushVers.model;
 
+import com.crushVers.enums.TagGroup;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,15 @@ public class Tag {
     @PropertyName("name")
     private String name;
 
-    public Tag(String name){
+    @PropertyName("group")
+    private TagGroup tagGroup;
+
+    @PropertyName("description")
+    private String description;
+
+    public Tag(String name, TagGroup tagGroup, String description) {
         this.name = name;
+        this.tagGroup = tagGroup;
+        this.description = description;
     }
 }

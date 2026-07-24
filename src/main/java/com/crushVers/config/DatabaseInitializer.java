@@ -1,5 +1,6 @@
 package com.crushVers.config;
 
+import com.crushVers.enums.TagGroup;
 import com.crushVers.model.*;
 import com.crushVers.service.FirestoreService;
 import com.crushVers.service.UserRoleService;
@@ -44,7 +45,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         initSocionics();
         //инициализация МБТИ
         initMbti();
-
+        //инициализация тегов
+        //инициализация тествых вселенных(временный код, пока нормально не сделаю)
+        //инициализация тестовых персонажей(временный код)
     }
 
     /**
@@ -149,7 +152,7 @@ public class DatabaseInitializer implements CommandLineRunner {
      * Инициализация Соционики
      */
     private void initSocionics() throws ExecutionException, InterruptedException {
-        System.out.println("\nПроверка типов соционики...");
+        log.info("\nПроверка типов соционики...");
         String[][] socionicsData = {
                 // shortId, fullName, shortName, description
                 {"ILE", "Интуитивно-логический экстраверт", "Дон Кихот",
@@ -233,9 +236,6 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     /**
-     * Инициализация MBTI
-     */
-    /**
      * Инициализация типов MBTI
      */
     private void initMbti() throws ExecutionException, InterruptedException {
@@ -315,6 +315,151 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
         log.info("Создано новых записей тип MBTI: {}", createdCount);
         log.info("Обновлено существующих тип MBTI: {}", existingCount);
+    }
+
+    /**
+     * Инициализация тегов
+     */
+    private void initTags() throws ExecutionException, InterruptedException {
+
+        String[][] tagData = {
+                // ВНЕШНОСТЬ
+                {"Очкарик", "APPEARANCE", "Персонаж носит очки"},
+                {"Гетерохромия", "APPEARANCE", "Разный цвет глаз"},
+                {"Ёжик", "APPEARANCE", "Причёска ёжик"},
+                {"Кудрявый", "APPEARANCE", "Кудрявые волосы"},
+                {"Длинные волосы", "APPEARANCE", "Длинные волосы"},
+                {"Лысый", "APPEARANCE", "Отсутствие волос"},
+                {"Родинка", "APPEARANCE", "Родинка на теле или лице"},
+                {"Пирсинг", "APPEARANCE", "Пирсинг или серьги"},
+                {"Ушастый", "APPEARANCE", "Звериные уши и/или хвост"},
+                {"Животное", "APPEARANCE", "Выраженные черты животного или само животное"},
+                {"Прищур", "APPEARANCE", "Характерный прищур глаз"},
+                {"Шапка", "APPEARANCE", "В шапке или другом головном уборе"},
+                {"Шкаф", "APPEARANCE", "Очень крупное телосложение"},
+                {"Тату", "APPEARANCE", "Татуировки или рисунки на теле"},
+                {"Каре", "APPEARANCE", "Каре или волосы до плеч"},
+                {"Косички", "APPEARANCE", "Косички в образе"},
+
+                //  ПОЗИЦИЯ В СЮЖЕТЕ
+                {"ГГ", "POSITION_IN_THE_PLOT", "Главный герой"},
+                {"Злодей", "POSITION_IN_THE_PLOT", "Злодей или антагонист"},
+                {"Антигерой", "POSITION_IN_THE_PLOT", "Менял сторону по сюжету, неоднозначный персонаж"},
+
+                //  РАСА
+                {"Демон", "RACE", "Демон"},
+                {"Оборотень", "RACE", "Оборотень"},
+                {"Вампир", "RACE", "Вампир"},
+                {"Святой", "RACE", "Бог, ангел или проповедник во вселенной"},
+                {"Эльф", "RACE", "Эльф"},
+                {"Киборг", "RACE", "Киборг или робот"},
+                {"Королевские корни", "RACE", "Королевского происхождения"},
+
+                // ДЕЯТЕЛЬНОСТЬ
+                {"Творец", "ACTIVITY", "Художник, писатель и т.д."},
+                {"Певец", "ACTIVITY", "Певец или музыкант"},
+                {"Доктор", "ACTIVITY", "Врач или доктор"},
+                {"Учёный", "ACTIVITY", "Учёный, исследователь"},
+                {"Командир", "ACTIVITY", "Командовал отрядом или компанией"},
+                {"Хулиган", "ACTIVITY", "Малолетние дебилы или состояли в школьных группировках"},
+                {"Учитель", "ACTIVITY", "Учитель или наставник"},
+
+                // ОРУЖИЕ
+                {"Мечник", "WEAPON", "Использовал меч как основное оружие"},
+                {"Стрелок", "WEAPON", "Использовал лук, пистолеты или пушки"},
+                {"Кулаки", "WEAPON", "Использовал рукопашный бой или знает его очень хорошо"},
+
+                // ДРУГОЕ
+                {"Спортивный", "OTHER", "Использовал меч как основное оружие"},
+                {"Музыкант", "OTHER", "Играл на каком-либо музыкальном предмете во время сюжета"},
+                {"Скрепы", "OTHER", "Всё, что в стране не принимается"},
+                {"Курильщик", "OTHER", ""},
+                {"Пьяница", "OTHER", ""},
+                {"Хозяйственный", "OTHER", ""},
+                {"Псих", "OTHER", ""},
+        };
+
+        int createdCount = 0;
+        int existingCount = 0;
+
+        for (String[] data : tagData) {
+            String name = data[0];
+            String groupCode = data[1];
+            String description = data[2];
+
+            Tag existing = baseDictionaryService.findByField(
+                    "tag", Tag.class, "name", name
+            );
+
+            if (existing == null) {
+                TagGroup group = TagGroup.fromCode(groupCode);
+                Tag tag = new Tag(name, group, description);
+                baseDictionaryService.save("tag",tag);
+                createdCount++;
+            } else {
+                existingCount++;
+                existing.setTagGroup(TagGroup.valueOf(groupCode));
+                existing.setDescription(description);
+                existing.setDescription(description);
+                baseDictionaryService.save("tag",existing);
+                existingCount++;
+            }
+        }
+        log.info("Создано новых записей тип Tag: {}", createdCount);
+        log.info("Обновлено существующих тип Tag: {}", existingCount);
+    }
+
+    /**
+     * Инициализация жанров
+     */
+    private void initGenres() throws ExecutionException, InterruptedException {
+        //добавлено с описанием, хотя пока его не будем использовать или дальше поменяем
+        String[][] genreData = {
+                {"Комедия", "Юмористические, смешные произведения"},
+                {"Драма", "Серьёзные, эмоциональные произведения"},
+                {"Трагедия", "Произведения с печальным финалом"},
+                {"Романтика", "Любовные истории, романтические линии"},
+                {"Китайское", "Произведения из Китая (манхуа, дорамы, фильмы)"},
+                {"Манхва", "Корейские комиксы"},
+                {"Аниме", "Японская анимация"},
+                {"Корейское", "Произведения из Кореи (дорамы, фильмы)"},
+                {"Ужасы", "Пугающие, страшные произведения"},
+                {"Боевик", "Экшн, перестрелки, погони"},
+                {"Экшен", "Динамичные сцены, драки"},
+                {"Фантастика", "Научная фантастика, будущее, технологии"},
+                {"Музыкальное", "Произведения с музыкой, мюзиклы"},
+                {"Игра", "Видеоигры, игровые вселенные"},
+                {"Сёнэн", "Для мальчиков (японская классификация)"},
+                {"Сёдзё", "Для девочек (японская классификация)"},
+                {"Сэйнэн", "Для взрослых мужчин (японская классификация)"},
+                {"Дзёсэй", "Для взрослых женщин (японская классификация)"},
+                {"Фильм", "Полнометражное кино"},
+                {"Сериал", "Многосерийные произведения"},
+                {"Мультфильм", "Анимационные произведения"},
+                {"Книга", "Литературные произведения"}
+        };
+
+        int createdCount = 0;
+        int existingCount = 0;
+
+        for (String[] data : genreData) {
+            String name = data[0];
+            String description = data[1];
+
+            Genre existing =  baseDictionaryService.findByField(
+                    "genre", Genre.class, "name", name
+            );
+
+            if (existing == null) {
+                Genre genre = new Genre(name, description);
+                baseDictionaryService.save("genre", genre);
+                createdCount++;
+            } else {
+                existingCount++;
+            }
+        }
+        log.info("Создано новых записей тип Genre: {}", createdCount);
+        log.info("Обновлено существующих тип Genre: {}", existingCount);
     }
 
 }
