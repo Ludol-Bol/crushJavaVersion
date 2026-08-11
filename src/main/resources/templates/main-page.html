@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> CrushVerse</title>
+    <title>Главная | CrushVerse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,202 +13,450 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #684F66;
+            background: #ffffff;
             min-height: 100vh;
         }
 
+        /* ===== НАВИГАЦИЯ ===== */
         .navbar {
-            background: white;
+            background: #E0D4E8;
             padding: 15px 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .logo h2 {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .user-info {
+        .navbar .logo {
             display: flex;
             align-items: center;
-            gap: 20px;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .logout-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
+            gap: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #684F66;
             cursor: pointer;
+            text-decoration: none;
+        }
+
+        .navbar .logo .heart {
+            color: #A4798D;
+            font-size: 28px;
+        }
+
+        .navbar .search {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 30px;
+            position: relative;
+        }
+
+        .navbar .search input {
+            width: 100%;
+            padding: 10px 18px 10px 45px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+            background: rgba(255, 255, 255, 0.6);
+            color: #684F66;
+        }
+
+        .navbar .search input::placeholder {
+            color: rgba(104, 79, 102, 0.5);
+        }
+
+        .navbar .search input:focus {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .navbar .search .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(104, 79, 102, 0.5);
+            font-size: 18px;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .navbar .nav-links a {
+            text-decoration: none;
+            color: #684F66;
+            font-weight: 500;
+            font-size: 15px;
+            transition: opacity 0.3s ease;
+            padding: 6px 0;
+            position: relative;
+            opacity: 0.7;
+        }
+
+        .navbar .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .navbar .nav-links a.active {
+            opacity: 1;
             font-weight: 600;
-            transition: transform 0.2s ease;
         }
 
-        .logout-btn:hover {
-            transform: translateY(-2px);
+        .navbar .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #A4798D;
+            border-radius: 2px;
         }
 
+        .navbar .nav-links .logout-link {
+            opacity: 0.6;
+        }
+
+        .navbar .nav-links .logout-link:hover {
+            opacity: 1;
+        }
+
+        /* ===== КОНТЕЙНЕР ===== */
         .container {
             max-width: 1200px;
-            margin: 50px auto;
-            padding: 0 20px;
+            margin: 0 auto;
+            padding: 20px 20px 40px;
         }
 
-        .welcome-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        /* ===== КАРТОЧКА ===== */
+        .card {
+            background: transparent;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.5s ease;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .card:hover {
+            transform: translateY(-4px);
         }
 
-        .welcome-card h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .welcome-card p {
-            color: #666;
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
-
-        .info-box {
-            background: #f5f5f5;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 30px;
-            text-align: left;
-        }
-
-        .info-box h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-
-        .info-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #e0e0e0;
+        .card .image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #f0e8f2 0%, #e0d4e8 100%);
+            border-radius: 16px;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            color: rgba(104, 79, 102, 0.2);
         }
 
-        .info-item strong {
-            color: #333;
-            width: 100px;
+        .card .image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
         }
 
-        .info-item span {
-            color: #666;
+        .card .info {
+            padding: 12px 18px 18px;
+            text-align: center;
+        }
+
+        .card .info .name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #684F66;
+            letter-spacing: 0.5px;
+        }
+
+        .card .info .universe {
+            font-size: 14px;
+            color: #A4798D;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        /* ===== ЗАГРУЗКА ПО ЦЕНТРУ СТРАНИЦЫ ===== */
+        .loading-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 80px);
+            width: 100%;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .loading-container .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0e8f2;
+            border-top: 4px solid #A4798D;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        .loading-container p {
+            color: #684F66;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== АДАПТАЦИЯ ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px 20px;
+            }
+
+            .navbar .search {
+                order: 3;
+                flex: 1 1 100%;
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .navbar .nav-links {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .navbar .nav-links a {
+                font-size: 13px;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 16px;
+            }
+
+            .card .image {
+                height: 170px;
+            }
+
+            .loading-wrapper {
+                min-height: calc(100vh - 120px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar .logo {
+                font-size: 20px;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .card .image {
+                height: 140px;
+            }
+
+            .card .info .name {
+                font-size: 15px;
+            }
+
+            .card .info .universe {
+                font-size: 12px;
+            }
+
+            .loading-wrapper {
+                min-height: calc(100vh - 160px);
+            }
         }
     </style>
 </head>
 <body>
-<div class="navbar">
-    <div class="logo">
-        <h2>💕 CrushVerse</h2>
-    </div>
-    <div class="user-info">
-        <span class="user-name" id="userName">Пользователь</span>
-        <button class="logout-btn" onclick="logout()">Выйти</button>
-    </div>
-</div>
 
-<div class="container">
-    <div class="welcome-card">
-        <h1>Добро пожаловать в CrushVerse! 🎉</h1>
-        <p>Страница пользователя в разработке</p>
+<!-- ===== НАВИГАЦИЯ ===== -->
+<nav class="navbar">
+    <a href="/main-page" class="logo">
+        <span class="heart">💕</span>
+        CrushVerse
+    </a>
 
-        <div class="info-box">
-            <h3>📋 Информация о пользователе</h3>
-            <div class="info-item">
-                <strong>ID:</strong>
-                <span id="userId">Загрузка...</span>
-            </div>
-            <div class="info-item">
-                <strong>Email:</strong>
-                <span id="userEmail">Загрузка...</span>
-            </div>
-            <div class="info-item">
-                <strong>Никнейм:</strong>
-                <span id="userNickname">Загрузка...</span>
-            </div>
-        </div>
+    <div class="search">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Поиск персонажей, вселенных..." id="searchInput">
+    </div>
+
+    <div class="nav-links">
+        <a href="/main-page" class="active">Идеал</a>
+        <a href="/main-page">Главная</a>
+        <a href="/profile">Профиль</a>
+        <a href="#" class="logout-link" onclick="logout(event)">Выйти</a>
+    </div>
+</nav>
+
+<!-- ===== КАРТОЧКИ ===== -->
+<div class="container" id="mainContainer">
+    <div id="cardsContainer" class="cards-grid">
+        <!-- Загрузка будет вставлена сюда через JS -->
     </div>
 </div>
 
 <script>
-    // При загрузке страницы проверяем авторизацию
-    document.addEventListener('DOMContentLoaded', function() {
-        checkAuthAndLoadUser();
+    function logout(e) {
+        e.preventDefault();
+        fetch('/api/logout', { method: 'POST' })
+            .then(() => window.location.href = '/login')
+            .catch(() => window.location.href = '/login');
+    }
+
+    // === ПОИСК ===
+    // === ПОИСК ===
+    let searchTimeout;
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        // Если запрос пустой — загружаем все данные
+        if (!query) {
+            loadCrushes();
+            return;
+        }
+
+        // Дебаунс — ждём 300мс после остановки ввода
+        searchTimeout = setTimeout(() => {
+            searchCrushes(query);
+        }, 300);
     });
 
-    // Проверка авторизации и загрузка данных пользователя
-    async function checkAuthAndLoadUser() {
+    async function searchCrushes(query) {
+        const container = document.getElementById('cardsContainer');
+
+        // Показываем загрузку
+        container.innerHTML = `
+        <div class="loading-wrapper" style="grid-column: 1/-1;">
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Поиск...</p>
+            </div>
+        </div>
+    `;
+
         try {
-            const response = await fetch('/api/check-auth');
+            const response = await fetch(`/api/crushes/search?query=${encodeURIComponent(query)}`);
             const data = await response.json();
 
-            if (data.authenticated) {
-                // Пользователь залогинен - показываем данные
-                document.getElementById('userName').innerText = data.nickname || data.email;
-                document.getElementById('userId').innerText = data.userId || 'Не указан';
-                document.getElementById('userEmail').innerText = data.email || 'Не указан';
-                document.getElementById('userNickname').innerText = data.nickname || 'Не указан';
-            } else {
-                // Пользователь не залогинен - кидаем на страницу входа
-                window.location.href = '/login';
+            if (!data.success || !data.crushes || data.crushes.length === 0) {
+                container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; color: #684F66; padding: 60px 20px;">
+                    <p style="font-size: 18px;">😢 Ничего не найдено</p>
+                    <p style="font-size: 14px; opacity: 0.7;">Попробуйте изменить запрос</p>
+                </div>
+            `;
+                return;
             }
+
+            container.innerHTML = data.crushes.map(crush => `
+            <div class="card" onclick="openCrush('${crush.id}')">
+                <div class="image">👤</div>
+                <div class="info">
+                    <div class="name">${crush.name}</div>
+                    <div class="universe">${crush.universeName || 'Вселенная неизвестна'}</div>
+                </div>
+            </div>
+        `).join('');
+
         } catch (error) {
-            console.error('Ошибка проверки авторизации:', error);
-            window.location.href = '/login';
+            console.error('Ошибка поиска:', error);
+            container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: #684F66; padding: 60px 20px;">
+                <p style="font-size: 18px;">❌ Ошибка поиска</p>
+                <p style="font-size: 14px; opacity: 0.7;">Пожалуйста, попробуйте позже</p>
+            </div>
+        `;
         }
     }
 
-    // Выход из системы
-    async function logout() {
-        try {
-            const response = await fetch('/api/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+    async function loadCrushes() {
+        const container = document.getElementById('cardsContainer');
 
+        // === ПОКАЗЫВАЕМ ЗАГРУЗКУ ПО ЦЕНТРУ ===
+        container.innerHTML = `
+                <div class="loading-wrapper" style="grid-column: 1/-1;">
+                    <div class="loading-container">
+                        <div class="spinner"></div>
+                        <p>Загрузка крашей...</p>
+                    </div>
+                </div>
+            `;
+
+        try {
+            const response = await fetch('/api/crushes');
             const data = await response.json();
 
-            if (data.success) {
-                window.location.href = '/login';
+            if (!data.success || !data.crushes || data.crushes.length === 0) {
+                container.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; color: #684F66; padding: 60px 20px;">
+                            <p style="font-size: 18px;">😢 Пока нет крашей</p>
+                            <p style="font-size: 14px; opacity: 0.7;">Добавьте их через базу данных</p>
+                        </div>
+                    `;
+                return;
             }
+
+            container.innerHTML = data.crushes.map(crush => `
+                    <div class="card" onclick="openCrush('${crush.id}')">
+                        <div class="image">👤</div>
+                        <div class="info">
+                            <div class="name">${crush.name}</div>
+                            <div class="universe">${crush.universeName || 'Вселенная неизвестна'}</div>
+                        </div>
+                    </div>
+                `).join('');
+
         } catch (error) {
-            console.error('Ошибка выхода:', error);
-            window.location.href = '/login';
+            console.error('Ошибка загрузки:', error);
+            container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: #684F66; padding: 60px 20px;">
+                        <p style="font-size: 18px;">❌ Ошибка загрузки</p>
+                        <p style="font-size: 14px; opacity: 0.7;">Пожалуйста, обновите страницу</p>
+                    </div>
+                `;
         }
     }
+
+    function openCrush(id) {
+        window.location.href = `/crush/${id}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCrushes);
 </script>
+
 </body>
 </html>

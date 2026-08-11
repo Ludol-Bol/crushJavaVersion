@@ -5,13 +5,13 @@ import com.crushVers.model.*;
 import com.crushVers.service.FirestoreService;
 import com.crushVers.service.UserRoleService;
 import com.crushVers.service.BaseDictionaryService;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -34,7 +34,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws ExecutionException, InterruptedException {
+    public void run(String @NonNull ... args) throws ExecutionException, InterruptedException {
         // создание базовых ролей
         initUserRoles();
         //назначем роль User всем к кого ее нет
@@ -47,7 +47,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         initMbti();
         //инициализация тегов
         //инициализация тествых вселенных(временный код, пока нормально не сделаю)
+        initUniverses();
         //инициализация тестовых персонажей(временный код)
+        initCrushes();
     }
 
     /**
@@ -221,14 +223,6 @@ public class DatabaseInitializer implements CommandLineRunner {
                 Socionics socionics = new Socionics(shortId, fullName, shortName, description);
                 baseDictionaryService.save("socionics", socionics);
                 createdCount++;
-            } else {
-                // Обновляем описание и названия на случай, если они изменились
-                existing.setFullName(fullName);
-                existing.setShortName(shortName);
-                existing.setDescription(description);
-                baseDictionaryService.save("socionics",existing);
-                System.out.println("   🔄 ОБНОВЛЁН ТИП: " + shortId);
-                existingCount++;
             }
         }
         log.info("Создано новых записей тип Socionics: {}", createdCount);
@@ -306,11 +300,6 @@ public class DatabaseInitializer implements CommandLineRunner {
                 MBTI mbti = new MBTI(fullName, code, description);
                 baseDictionaryService.save("mbti", mbti);
                 createdCount++;
-            } else {
-                existing.setFullName(fullName);
-                existing.setDescription(description);
-                baseDictionaryService.save("mbti", existing);
-                existingCount++;
             }
         }
         log.info("Создано новых записей тип MBTI: {}", createdCount);
@@ -396,13 +385,6 @@ public class DatabaseInitializer implements CommandLineRunner {
                 Tag tag = new Tag(name, group, description);
                 baseDictionaryService.save("tag",tag);
                 createdCount++;
-            } else {
-                existingCount++;
-                existing.setTagGroup(TagGroup.valueOf(groupCode));
-                existing.setDescription(description);
-                existing.setDescription(description);
-                baseDictionaryService.save("tag",existing);
-                existingCount++;
             }
         }
         log.info("Создано новых записей тип Tag: {}", createdCount);
@@ -460,6 +442,148 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
         log.info("Создано новых записей тип Genre: {}", createdCount);
         log.info("Обновлено существующих тип Genre: {}", existingCount);
+    }
+
+
+    /**
+     * Инициализация тестовых вселенных
+     */
+    private void initUniverses() throws ExecutionException, InterruptedException {
+        List<Genre> allGenres = baseDictionaryService.findAll("genre", Genre.class);
+        Map<String, String> genreMap = new HashMap<>();
+        for (Genre genre : allGenres) {
+            genreMap.put(genre.getName(), genre.getId());
+        }
+        String[][] universeData = {
+                {"Марвел", "Вселенная Marvel Comics — супергерои, мутанты и космические приключения.",
+                        "Боевик,Экшен,Фантастика,Фильм,Сериал,Мультфильм"},
+                {"DC", "Вселенная DC Comics — легендарные герои и злодеи.",
+                        "Боевик,Экшен,Фантастика,Фильм,Сериал,Мультфильм"},
+                {"Звёздные войны", "Давным-давно в далёкой-далёкой галактике...",
+                        "Фантастика,Боевик,Экшен,Фильм,Сериал,Мультфильм"},
+                {"Властелин колец", "Средиземье — мир эльфов, гномов и хоббитов.",
+                        "Фэнтези,Драма,Приключения,Фильм,Книга"},
+                {"Гарри Поттер", "Мир магии, Хогвартса и волшебников.",
+                        "Фэнтези,Приключения,Драма,Фильм,Книга"},
+                {"Игра престолов", "Семь королевств Вестероса — борьба за Железный трон.",
+                        "Фэнтези,Драма,Сериал,Книга"},
+                {"Аниме-вселенная", "Сборная вселенная популярных аниме-миров.",
+                        "аниме,Фантастика,Экшен,Сёнэн,Мультфильм"},
+                {"Киберпанк", "Мир высоких технологий и мрачного будущего.",
+                        "Фантастика,Киберпанк,Экшен,Игра,Фильм,Сериал"},
+                {"Дисней", "Мир волшебных сказок и приключений от Disney.",
+                        "Мультфильм,Приключения,Семейный,Фильм"},
+                {"Оригинальная вселенная", "Уникальный мир, созданный для CrushVerse.",
+                        "Фэнтези,Приключения,Романтика,Драма"}
+        };
+        for (String[] data : universeData) {
+            String name = data[0];
+            String description = data[1];
+            String genreNamesStr = data[2];
+            String[] genreNames = genreNamesStr.split(",");
+            List<String> genreIds = new ArrayList<>();
+            for (String genreName : genreNames) {
+                String genreId = genreMap.get(genreName.trim());
+                if (genreId != null) {
+                    genreIds.add(genreId);
+                }
+            }
+            Universe existing = baseDictionaryService.findByField("universe", Universe.class, "name", name);
+            if (existing == null) {
+                Universe universe = new Universe(name, description, genreIds);
+                baseDictionaryService.save("universe", universe);
+            }
+        }
+    }
+
+    /**
+     * Инициализация крашей с рандомными связями(тестовые данные, дальше поправяим)
+     */
+    private void initCrushes() throws ExecutionException, InterruptedException {
+        // Получаем все данные из справочников
+        List<Universe> universes = baseDictionaryService.findAll("universe", Universe.class);
+        List<ZodiacSign> zodiacs = baseDictionaryService.findAll("zodiac_sign", ZodiacSign.class);
+        List<Socionics> socionics = baseDictionaryService.findAll("socionics", Socionics.class);
+        List<MBTI> mbtiList = baseDictionaryService.findAll("mbti", MBTI.class);
+        List<Tag> tags = baseDictionaryService.findAll("tag", Tag.class);
+
+        // Создаём списки ID для случайного выбора
+        List<String> universeIds = universes.stream().map(Universe::getId).toList();
+        List<String> zodiacIds = zodiacs.stream().map(ZodiacSign::getId).toList();
+        List<String> socionicsIds = socionics.stream().map(Socionics::getId).toList();
+        List<String> mbtiIds = mbtiList.stream().map(MBTI::getId).toList();
+        List<String> tagIds = tags.stream().map(Tag::getId).toList();
+        Random random = new Random();
+        String[][] crushData = {
+                {"Арагорн", "Настоящий король, объединяющий народы Средиземья.", "198", "3018"},
+                {"Леголас", "Эльфийский принц, мастер стрельбы из лука.", "183", "87"},
+                {"Гимли", "Отважный гном, верный друг.", "152", "252"},
+                {"Фродо", "Хранитель Кольца, несущий бремя судьбы мира.", "135", "2968"},
+                {"Гэндальф", "Мудрый маг, наставник и защитник.", "185", "1000"},
+                {"Арвен", "Эльфийская принцесса, возлюбленная Арагорна.", "170", "2777"},
+                {"Эовин", "Белая леди Рохана, воительница.", "168", "2995"},
+                {"Саурон", "Тёмный властелин, создатель Кольца Всевластья.", "280", "1000"},
+
+                {"Гарри Поттер", "Мальчик, который выжил, и великий волшебник.", "178", "1980"},
+                {"Гермиона Грейнджер", "Самый умный ведьма своего поколения.", "165", "1979"},
+                {"Рон Уизли", "Верный друг, член семьи Уизли.", "183", "1980"},
+                {"Дамблдор", "Величайший директор Хогвартса.", "190", "1881"},
+                {"Северус Снейп", "Загадочный профессор с тёмным прошлым.", "183", "1960"},
+
+                {"Тони Старк", "Железный Человек, гениальный изобретатель и плейбой.", "185", "1970"},
+                {"Стив Роджерс", "Капитан Америка, символ свободы.", "188", "1918"},
+                {"Наташа Романофф", "Чёрная Вдова, мастер боевых искусств.", "165", "1984"},
+                {"Тор", "Бог грома, наследник Асгарда.", "198", "1983"},
+                {"Локи", "Бог хитрости и обмана.", "193", "1982"},
+
+                {"Люк Скайуокер", "Последний джедай, приносящий надежду галактике.", "185", "1981"},
+                {"Дарт Вейдер", "Тёмный лорд ситхов, отец Люка.", "200", "1977"},
+                {"Принцесса Лея", "Лидер Повстанцев, принцесса Альдераана.", "155", "1983"},
+                {"Хан Соло", "Контрабандист, капитан Тысячелетнего сокола.", "180", "1977"},
+
+                {"Шерлок Холмс", "Величайший детектив всех времён.", "183", "1970"},
+                {"Доктор Стрэндж", "Верховный маг, защитник мира.", "188", "1970"}
+        };
+        for (String[] data : crushData) {
+            String name = data[0];
+            String description = data[1];
+            int height = Integer.parseInt(data[2]);
+            int dateOfBirth = Integer.parseInt(data[3]);
+            String randomUniverseId = universeIds.isEmpty() ? null : universeIds.get(random.nextInt(universeIds.size()));
+            String randomZodiacId = zodiacIds.isEmpty() ? null : zodiacIds.get(random.nextInt(zodiacIds.size()));
+            String randomSocionicsId = socionicsIds.isEmpty() ? null : socionicsIds.get(random.nextInt(socionicsIds.size()));
+            String randomMbtiId = mbtiIds.isEmpty() ? null : mbtiIds.get(random.nextInt(mbtiIds.size()));
+            List<String> randomTagIds = new ArrayList<>();
+            if (!tagIds.isEmpty()) {
+                int tagCount = 2 + random.nextInt(4); // 2-5 тегов
+                List<String> shuffledTags = new ArrayList<>(tagIds);
+                Collections.shuffle(shuffledTags);
+                randomTagIds = shuffledTags.subList(0, Math.min(tagCount, shuffledTags.size()));
+            }
+            Crush existing = baseDictionaryService.findByField(
+                    "crush", Crush.class, "name", name
+            );
+            if (existing == null) {
+                Crush crush = new Crush();
+                crush.setName(name);
+                crush.setDescription(description);
+                crush.setUniverseId(randomUniverseId);
+                crush.setZodiacSignId(randomZodiacId);
+                crush.setSocionicsId(randomSocionicsId);
+                crush.setMbtiId(randomMbtiId);
+                crush.setHeight(height);
+                crush.setDateOfBirth(dateOfBirth);
+                crush.setTegsIds(randomTagIds);
+                baseDictionaryService.save("crush", crush);
+                // Получаем название вселенной для вывода
+                String universeName = universes.stream()
+                        .filter(u -> u.getId().equals(randomUniverseId))
+                        .map(Universe::getName)
+                        .findFirst()
+                        .orElse("Без вселенной");
+
+            }
+        }
     }
 
 }
